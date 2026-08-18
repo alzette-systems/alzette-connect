@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/ticruz38/alzette-connect/internal/appstate"
 	"github.com/ticruz38/alzette-connect/internal/clientconfig"
@@ -101,8 +102,14 @@ func validPath(path string, executable bool) string {
 	if err != nil || !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
 		return ""
 	}
-	if executable && info.Mode().Perm()&0o111 == 0 {
-		return ""
+	if executable {
+		if runtime.GOOS == "windows" {
+			if !strings.EqualFold(filepath.Ext(path), ".exe") {
+				return ""
+			}
+		} else if info.Mode().Perm()&0o111 == 0 {
+			return ""
+		}
 	}
 	return path
 }

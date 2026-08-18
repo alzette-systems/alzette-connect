@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/ticruz38/alzette-connect/internal/clientconfig"
@@ -11,8 +12,12 @@ import (
 
 func TestDiscoverDesktopClientsAcceptsOnlyExistingAbsoluteRegularOverrides(t *testing.T) {
 	directory := t.TempDir()
-	jan := filepath.Join(directory, "jan")
-	goose := filepath.Join(directory, "goose")
+	executableSuffix := ""
+	if runtime.GOOS == "windows" {
+		executableSuffix = ".exe"
+	}
+	jan := filepath.Join(directory, "jan"+executableSuffix)
+	goose := filepath.Join(directory, "goose"+executableSuffix)
 	asar := filepath.Join(directory, "app.asar")
 	for _, path := range []string{jan, goose} {
 		if err := os.WriteFile(path, []byte("test"), 0o700); err != nil {
