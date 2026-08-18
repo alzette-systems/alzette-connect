@@ -27,17 +27,17 @@ jobs:
         shell: bash
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: '1.25.x'
           check-latest: true
           cache: true
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -47,11 +47,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev libsecret-tools
 
-      - name: Verify source and tests
-        run: scripts/verify.sh
-
       - name: Install pinned Wails CLI
         run: scripts/install-wails.sh
+
+      - name: Verify source and tests
+        run: scripts/verify.sh
 
       - name: Build unsigned application smoke
         run: scripts/build-smoke.sh
@@ -65,7 +65,7 @@ jobs:
             > dist/UNSIGNED-CI.txt
 
       - name: Upload unsigned smoke output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: alzette-connect-${{ runner.os }}-${{ runner.arch }}-unsigned-ci
           path: |

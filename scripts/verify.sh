@@ -18,6 +18,15 @@ done
 scripts/check-packaging.sh
 
 if [[ -f frontend/package.json ]]; then
+  if ! command -v wails3 >/dev/null 2>&1; then
+    echo "wails3 is required to generate frontend bindings; run scripts/install-wails.sh" >&2
+    exit 1
+  fi
+  binding_args=()
+  if [[ ${#go_test_args[@]} -gt 0 ]]; then
+    binding_args=(-f "-tags gtk3")
+  fi
+  wails3 generate bindings "${binding_args[@]}"
   if [[ ! -f frontend/package-lock.json ]]; then
     echo "frontend/package-lock.json is required for reproducible verification" >&2
     exit 1

@@ -39,8 +39,8 @@ The current downloads are intentionally named `unsigned-demo`: macOS receives an
 Use Go 1.25 or newer and Node.js 22. Install the native packages for your host from [the build guide](docs/BUILDING.md), then run:
 
 ```sh
-scripts/verify.sh
 scripts/install-wails.sh
+scripts/verify.sh
 scripts/build-smoke.sh
 ```
 

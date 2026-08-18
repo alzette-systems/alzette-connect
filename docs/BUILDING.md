@@ -55,8 +55,8 @@ installer work. Git for Windows supplies the Bash used by repository scripts.
 From the repository root:
 
 ```sh
-scripts/verify.sh
 scripts/install-wails.sh
+scripts/verify.sh
 scripts/build-smoke.sh
 ```
 
