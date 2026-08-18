@@ -30,7 +30,7 @@ func main() {
 	if err != nil || !filepath.IsAbs(home) {
 		log.Fatal("Alzette Connect could not resolve the current user's home directory")
 	}
-	controlURL := envOr("ALZETTE_CONTROL_URL", "https://alzette.systems")
+	controlURL := envOr("ALZETTE_CONTROL_URL", "https://app.alzette.systems")
 	runtime, err := appstate.NewRuntime(appstate.RuntimeConfig{
 		ControlURL:    controlURL,
 		CallbackURL:   envOr("ALZETTE_CONNECT_CALLBACK_URL", "http://127.0.0.1:43127/callback"),
