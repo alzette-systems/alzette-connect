@@ -12,14 +12,14 @@ if [[ -z "$version" || "$version" == "<no value>" ]]; then
 fi
 
 echo "Installing Wails CLI from $module@$version"
-go_install_args=()
 if [[ "$(uname -s)" == "Linux" ]] && command -v pkg-config >/dev/null 2>&1 && \
   ! pkg-config --exists gtk4 webkitgtk-6.0 && \
   pkg-config --exists gtk+-3.0 webkit2gtk-4.1; then
   echo "Using Wails' GTK3 compatibility tag on this development host."
-  go_install_args=(-tags gtk3)
+  go install -tags gtk3 "$module/cmd/wails3@$version"
+else
+  go install "$module/cmd/wails3@$version"
 fi
-go install "${go_install_args[@]}" "$module/cmd/wails3@$version"
 
 wails_bin_dir="$(go env GOPATH)/bin"
 if [[ -n "${GITHUB_PATH:-}" ]]; then
