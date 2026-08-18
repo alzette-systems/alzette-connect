@@ -1,0 +1,100 @@
+name: Desktop Downloads
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Demo build version (for example 0.1.0-demo.2)
+        required: true
+        default: 0.1.0-demo
+        type: string
+  push:
+    tags:
+      - 'connect-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-downloads-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: ${{ matrix.label }} downloadable package
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            label: Linux x64
+          - os: macos-15
+            label: macOS arm64
+          - os: macos-15-intel
+            label: macOS x64
+          - os: windows-2025
+            label: Windows x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    env:
+      ALZETTE_CONNECT_VERSION: ${{ inputs.version || github.ref_name }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Linux native packaging dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev libsecret-tools
+
+      - name: Install Windows installer tooling
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install nsis --yes --no-progress
+
+      - name: Verify source and tests
+        run: scripts/verify.sh
+
+      - name: Install pinned Wails CLI
+        run: scripts/install-wails.sh
+
+      - name: Build application
+        run: scripts/build-smoke.sh
+
+      - name: Assemble native-shaped download
+        run: scripts/package-download.sh --from-build
+
+      - name: Upload downloadable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: alzette-connect-${{ runner.os }}-${{ runner.arch }}-unsigned-demo
+          path: |
+            dist/Alzette-Connect-*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Explain release boundary
+        run: |
+          printf '%s\n' \
+            '### ${{ matrix.label }} package ready' \
+            '' \
+            'This is an **unsigned internal demo** download. Production publication remains blocked on platform signing/notarization and clean-machine acceptance.' \
+            >> "$GITHUB_STEP_SUMMARY"

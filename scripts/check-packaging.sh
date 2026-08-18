@@ -12,6 +12,9 @@ required=(
   packaging/macos/README.md
   packaging/macos/entitlements.plist
   packaging/windows/README.md
+  packaging/windows/installer.nsi
+  scripts/package-download.sh
+  .github/workflows/desktop-downloads.yml
   docs/BUILDING.md
   docs/RELEASING.md
   docs/SUPPORTED_PLATFORMS.md
@@ -24,6 +27,13 @@ for path in "${required[@]}"; do
     exit 1
   fi
 done
+
+if [[ ! -x scripts/package-download.sh ]]; then
+  echo "download packaging script is not executable" >&2
+  exit 1
+fi
+
+bash -n scripts/package-download.sh
 
 desktop="packaging/linux/systems.alzette.Connect.desktop"
 for entry in \

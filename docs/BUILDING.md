@@ -77,6 +77,18 @@ signing must run on the target operating system because a successful build or
 archive does not prove native packaging, installation, keychain, tray, or
 notarization.
 
+For an installable internal-demo shape on the current operating system, run:
+
+```sh
+ALZETTE_CONNECT_VERSION=0.1.0-demo scripts/package-download.sh
+```
+
+This emits an ad-hoc-signed `.app.zip` on macOS, a per-user NSIS `.exe` on
+Windows, or a `.deb` on Ubuntu, plus a SHA-256 file. The packages embed an
+`UNSIGNED-DEMO` notice and are not production release artifacts. The
+**Desktop Downloads** workflow runs this command independently on the target
+GitHub-hosted operating systems and retains its artifacts for 30 days.
+
 ## Outputs
 
 Wails writes intermediate build/package files under its configured build tree.

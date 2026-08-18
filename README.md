@@ -28,6 +28,12 @@ If an app is open, has an unsupported version, or already contains an Alzette en
 
 Signed installers, auto-updates, real Casdoor/TLS acceptance, and release qualification on clean macOS, Windows, and Ubuntu machines remain release gates. The app must not be distributed to employees as a production build until those gates pass.
 
+## Download an internal demo build
+
+The **Desktop Downloads** GitHub Actions workflow builds a native-shaped download for macOS (Apple Silicon and Intel), Windows x64, and Ubuntu x64. Open the repository's **Actions** tab, choose **Desktop Downloads**, select **Run workflow**, and enter a demo version such as `0.1.0-demo.2`. When the run is green, download the artifact for the employee's operating system from the run summary.
+
+The current downloads are intentionally named `unsigned-demo`: macOS receives an ad-hoc-signed `.app.zip`, Windows receives a per-user `.exe` installer, and Ubuntu receives a `.deb`. They are suitable for the controlled demo and acceptance work, but they are not production releases. macOS notarization, Windows Authenticode signing, platform clean-machine QA, and protected release publication remain mandatory before self-service employee distribution.
+
 ## Developer quick start
 
 Use Go 1.25 or newer and Node.js 22. Install the native packages for your host from [the build guide](docs/BUILDING.md), then run:
@@ -36,6 +42,12 @@ Use Go 1.25 or newer and Node.js 22. Install the native packages for your host f
 scripts/verify.sh
 scripts/install-wails.sh
 scripts/build-smoke.sh
+```
+
+To assemble the native-shaped demo download produced by CI on the current operating system:
+
+```sh
+ALZETTE_CONNECT_VERSION=0.1.0-demo scripts/package-download.sh
 ```
 
 On Debian 12 the build script detects the installed GTK3/WebKitGTK 4.1 compatibility stack. Release Linux builds target Ubuntu 24.04 with GTK4/WebKitGTK 6.0.
