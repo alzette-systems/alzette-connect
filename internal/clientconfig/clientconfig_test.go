@@ -39,12 +39,21 @@ func testManager(t *testing.T, root string, secrets *memorySecrets, running Runn
 	return manager
 }
 
+func canonicalTempRoot(t *testing.T) string {
+	t.Helper()
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return root
+}
+
 func connection(capability string) Connection {
 	return Connection{BaseURL: "http://127.0.0.1:41001/v1", Capability: capability, Models: []string{"alzette-chat"}}
 }
 
 func TestConfigureJanPreservesSettingsAndRollsBack(t *testing.T) {
-	root := t.TempDir()
+	root := canonicalTempRoot(t)
 	data := filepath.Join(root, "jan-data")
 	mustMkdir(t, data)
 	app := filepath.Join(root, "jan-settings.json")
@@ -79,7 +88,7 @@ func TestConfigureJanPreservesSettingsAndRollsBack(t *testing.T) {
 }
 
 func TestConfigureGoosePreservesConfigAndSecrets(t *testing.T) {
-	root := t.TempDir()
+	root := canonicalTempRoot(t)
 	configDir := filepath.Join(root, ".config", "goose")
 	mustMkdir(t, configDir)
 	mustWrite(t, filepath.Join(configDir, "config.yaml"), []byte("extensions:\n  developer: true\nproviders:\n  ollama:\n    enabled: true\n"), 0o600)
@@ -107,7 +116,7 @@ func TestConfigureGoosePreservesConfigAndSecrets(t *testing.T) {
 }
 
 func TestRefusesRunningClientAndWrongGooseVersion(t *testing.T) {
-	root := t.TempDir()
+	root := canonicalTempRoot(t)
 	secrets := &memorySecrets{values: map[string]string{}}
 	exe := filepath.Join(root, "client")
 	mustWrite(t, exe, []byte("x"), 0o700)
