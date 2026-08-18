@@ -63,3 +63,19 @@ test("production copy uses verified client versions and bounded setup claims", a
   assert.match(html, /Version 1\.46\.0/);
   assert.doesNotMatch(html, /Automatic setup/i);
 });
+
+test("native update controls expose bounded states without exposing release URLs", async () => {
+  const html = await read("index.html");
+  const appScript = await read("app.js");
+  const nativeScript = await read("native.js");
+  assert.match(html, /data-check-update/);
+  assert.match(html, /data-install-update/);
+  for (const state of ["checking", "current", "available", "downloading", "installing", "installer_opened", "error"]) {
+    assert.match(appScript, new RegExp(`['"]${state}['"]`));
+  }
+  assert.match(nativeScript, /CheckForUpdates/);
+  assert.match(nativeScript, /InstallUpdate/);
+  assert.match(html, /unsigned internal demo/i);
+  assert.match(html, /aria-live="polite"/);
+  assert.doesNotMatch(`${html}\n${appScript}`, /browser_download_url|release-assets\.githubusercontent\.com/);
+});

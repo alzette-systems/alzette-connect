@@ -36,12 +36,22 @@ type Application struct {
 	Version string `json:"version,omitempty"`
 }
 
+// Update is presentation-only release state. It never includes a download URL,
+// local path, digest, or any credential-bearing value.
+type Update struct {
+	State            string `json:"state"`
+	CurrentVersion   string `json:"current_version"`
+	AvailableVersion string `json:"available_version,omitempty"`
+	Message          string `json:"message,omitempty"`
+}
+
 type Snapshot struct {
 	Phase        Phase         `json:"phase"`
 	Message      string        `json:"message"`
 	ErrorCode    string        `json:"error_code,omitempty"`
 	Contexts     []Context     `json:"contexts,omitempty"`
 	Applications []Application `json:"applications,omitempty"`
+	Update       Update        `json:"update"`
 	UpdatedAt    time.Time     `json:"updated_at"`
 }
 

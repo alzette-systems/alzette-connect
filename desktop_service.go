@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/ticruz38/alzette-connect/internal/appstate"
 	"github.com/ticruz38/alzette-connect/internal/clientconfig"
 	"github.com/ticruz38/alzette-connect/internal/platform"
+	"github.com/ticruz38/alzette-connect/internal/updater"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -17,19 +19,24 @@ import (
 // webview. It returns presentation state only; credentials and loopback
 // capabilities stay inside the Go runtime.
 type desktopService struct {
-	app           *application.App
-	state         *appstate.Model
-	runtime       *appstate.Runtime
-	membershipID  string
-	portalOrigin  string
-	clients       *desktopClients
-	clientConfig  *clientconfig.Manager
-	actionMu      sync.Mutex
-	applicationMu sync.RWMutex
-	applications  []appstate.Application
-	signInMu      sync.Mutex
-	signInCancel  context.CancelFunc
-	window        *application.WebviewWindow
+	app            *application.App
+	state          *appstate.Model
+	runtime        *appstate.Runtime
+	membershipID   string
+	portalOrigin   string
+	clients        *desktopClients
+	clientConfig   *clientconfig.Manager
+	actionMu       sync.Mutex
+	applicationMu  sync.RWMutex
+	applications   []appstate.Application
+	updateActionMu sync.Mutex
+	updateMu       sync.RWMutex
+	update         appstate.Update
+	updater        *updater.Client
+	updateRelease  updater.Release
+	signInMu       sync.Mutex
+	signInCancel   context.CancelFunc
+	window         *application.WebviewWindow
 }
 
 func (s *desktopService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -38,6 +45,14 @@ func (s *desktopService) ServiceStartup(ctx context.Context, _ application.Servi
 	}
 	go func() {
 		_, _ = s.runtime.Resume(ctx, s.membershipID)
+	}()
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(8 * time.Second):
+			_, _ = s.checkForUpdates(false)
+		}
 	}()
 	return nil
 }
@@ -53,7 +68,111 @@ func (s *desktopService) presentationState(snapshot appstate.Snapshot) appstate.
 	s.applicationMu.RLock()
 	snapshot.Applications = append([]appstate.Application(nil), s.applications...)
 	s.applicationMu.RUnlock()
+	s.updateMu.RLock()
+	snapshot.Update = s.update
+	s.updateMu.RUnlock()
 	return snapshot
+}
+
+func (s *desktopService) setUpdate(next appstate.Update) {
+	s.updateMu.Lock()
+	s.update = next
+	s.updateMu.Unlock()
+	if s.app != nil && s.state != nil {
+		s.app.Event.Emit("connect:state", s.presentationState(s.state.Current()))
+	}
+}
+
+func (s *desktopService) CheckForUpdates() (appstate.Update, error) {
+	return s.checkForUpdates(true)
+}
+
+func (s *desktopService) checkForUpdates(interactive bool) (appstate.Update, error) {
+	if s == nil || s.updater == nil {
+		return appstate.Update{}, errors.New("Update checks are still starting")
+	}
+	s.updateActionMu.Lock()
+	defer s.updateActionMu.Unlock()
+	s.updateMu.RLock()
+	current := s.update.CurrentVersion
+	s.updateMu.RUnlock()
+	if interactive {
+		s.setUpdate(appstate.Update{State: "checking", CurrentVersion: current, Message: "Checking the pinned demo release channel…"})
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	release, err := s.updater.Check(ctx)
+	if errors.Is(err, updater.ErrNoUpdate) {
+		s.updateMu.Lock()
+		s.updateRelease = updater.Release{}
+		s.updateMu.Unlock()
+		next := appstate.Update{State: "current", CurrentVersion: current, Message: "You’re using the latest demo release."}
+		s.setUpdate(next)
+		return next, nil
+	}
+	if err != nil {
+		s.updateMu.Lock()
+		s.updateRelease = updater.Release{}
+		s.updateMu.Unlock()
+		next := appstate.Update{State: "idle", CurrentVersion: current}
+		if interactive {
+			next = appstate.Update{State: "error", CurrentVersion: current, Message: "Connect couldn’t check the release channel. Try again when you’re online."}
+		}
+		s.setUpdate(next)
+		return next, errors.New(next.Message)
+	}
+	s.updateMu.Lock()
+	s.updateRelease = release
+	s.updateMu.Unlock()
+	message := "Integrity-checked, unsigned internal demo. Connect will close, install, and reopen."
+	if runtime.GOOS == "linux" {
+		message = "Integrity-checked, unsigned internal demo. Connect will open your system package installer."
+	}
+	next := appstate.Update{State: "available", CurrentVersion: current, AvailableVersion: release.Version, Message: message}
+	s.setUpdate(next)
+	return next, nil
+}
+
+func (s *desktopService) InstallUpdate() error {
+	if s == nil || s.updater == nil {
+		return errors.New("Updates are still starting")
+	}
+	s.updateActionMu.Lock()
+	defer s.updateActionMu.Unlock()
+	s.updateMu.RLock()
+	release := s.updateRelease
+	updateState := s.update.State
+	current := s.update.CurrentVersion
+	s.updateMu.RUnlock()
+	if release.Version == "" || updateState != "available" {
+		return errors.New("Check for an update first")
+	}
+	s.setUpdate(appstate.Update{State: "downloading", CurrentVersion: current, AvailableVersion: release.Version, Message: "Downloading and verifying the update…"})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	assetPath, err := s.updater.Download(ctx, release)
+	if err != nil {
+		next := appstate.Update{State: "error", CurrentVersion: current, AvailableVersion: release.Version, Message: "The update could not be downloaded and verified."}
+		s.setUpdate(next)
+		return errors.New(next.Message)
+	}
+	if err := updater.StartInstall(assetPath); err != nil {
+		next := appstate.Update{State: "error", CurrentVersion: current, AvailableVersion: release.Version, Message: "The integrity-checked update could not be opened for installation."}
+		s.setUpdate(next)
+		return errors.New(next.Message)
+	}
+	next := appstate.Update{State: "installing", CurrentVersion: current, AvailableVersion: release.Version, Message: "Update integrity confirmed. Connect will reopen after installation…"}
+	if runtime.GOOS == "linux" {
+		next = appstate.Update{State: "installer_opened", CurrentVersion: current, AvailableVersion: release.Version, Message: "System installer opened. Finish the update there, then reopen Connect."}
+	}
+	s.setUpdate(next)
+	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
+		go func() {
+			time.Sleep(400 * time.Millisecond)
+			s.app.Quit()
+		}()
+	}
+	return nil
 }
 
 func (s *desktopService) OpenPortal(target string) error {

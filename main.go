@@ -11,8 +11,11 @@ import (
 
 	"github.com/ticruz38/alzette-connect/internal/appstate"
 	"github.com/ticruz38/alzette-connect/internal/clientconfig"
+	"github.com/ticruz38/alzette-connect/internal/updater"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
+
+var version = "0.2.0-demo.1"
 
 //go:embed all:frontend/dist
 var frontendAssets embed.FS
@@ -25,6 +28,12 @@ func init() {
 }
 
 func main() {
+	if handled, err := updater.HandleHelper(os.Args); handled {
+		if err != nil {
+			log.Print(err)
+		}
+		return
+	}
 	state := appstate.New(time.Now())
 	home, err := os.UserHomeDir()
 	if err != nil || !filepath.IsAbs(home) {
@@ -38,6 +47,10 @@ func main() {
 		Profile:       envOr("ALZETTE_CONNECT_PROFILE", "default"),
 		AllowInsecure: os.Getenv("ALZETTE_CONNECT_ALLOW_INSECURE") == "1",
 	}, state)
+	if err != nil {
+		log.Fatal(err)
+	}
+	updateClient, err := updater.New(updater.Options{CurrentVersion: version})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +72,11 @@ func main() {
 		clients:      clients,
 		clientConfig: clientManager,
 		applications: clients.applicationStates(),
+		updater:      updateClient,
+		update: appstate.Update{
+			State:          "idle",
+			CurrentVersion: updateClient.CurrentVersion(),
+		},
 	}
 	var primaryWindow *application.WebviewWindow
 
@@ -113,6 +131,10 @@ func main() {
 	menu := app.NewMenu()
 	menu.Add("Open Alzette Connect").OnClick(func(*application.Context) {
 		tray.ShowWindow()
+	})
+	menu.Add("Check for Updates…").OnClick(func(*application.Context) {
+		tray.ShowWindow()
+		go func() { _, _ = desktop.CheckForUpdates() }()
 	})
 	menu.AddSeparator()
 	menu.Add("Quit").OnClick(func(*application.Context) {

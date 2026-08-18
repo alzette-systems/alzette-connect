@@ -37,7 +37,7 @@ Connect is the device-side custody boundary between a human company identity and
 - The companion must never render, log, or persist plaintext service credentials in its web UI.
 - This repository includes a Wails native-shell and Go runtime foundation. The frontend is semantic HTML/CSS/vanilla JavaScript with a narrow, safe event boundary for that runtime.
 - Jan 0.8.4 and Goose 1.46.0 adapters are implemented with version, ownership, protected-store, backup, atomic-write, and rollback checks. Native client automation remains release-gated until the signed package passes the exact macOS, Windows, and Linux compatibility matrix.
-- Production packaging, signed installers, updates, and the production model-route discovery contract are not yet proven.
+- The internal demo channel can check a pinned GitHub release, select the exact OS/architecture package, verify GitHub's SHA-256 asset digest, and hand off installation. Production signing, notarization, publisher continuity, rollback evidence, and the production model-route discovery contract are not yet proven.
 
 ## Brand Commitments
 

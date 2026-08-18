@@ -2,12 +2,14 @@ import { Events } from "@wailsio/runtime";
 import {
   BeginSignIn,
   CancelSignIn,
+  CheckForUpdates,
   ConfigureApps,
   CurrentState,
   OpenApp,
   OpenPortal,
   Quit,
   SignOut,
+  InstallUpdate,
   SetWindowMode,
 } from "./bindings/github.com/ticruz38/alzette-connect/desktopservice.js";
 
@@ -52,6 +54,10 @@ function runAction(detail) {
       return ConfigureApps(target);
     case "open-help":
       return Promise.reject(new Error("This action is not available in this build yet."));
+    case "check-update":
+      return CheckForUpdates();
+    case "install-update":
+      return InstallUpdate();
     default:
       return Promise.reject(new Error("Alzette Connect did not recognise that action."));
   }

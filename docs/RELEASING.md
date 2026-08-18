@@ -44,14 +44,26 @@ pull requests or third-party build steps.
 
 ## Updates
 
-Automatic update remains disabled until all three supported platform paths can
-verify signed metadata and artifacts, refuse tampered content, drain the local
-proxy, revoke the current grant, install, relaunch, and roll back. TLS alone is
-not update authenticity.
+The internal demo channel is implemented with deliberately narrow trust:
 
-Linux package-manager updates and in-app AppImage updates are distinct paths
-and require separate evidence. macOS updates require a signed/notarized target.
-Windows updates must preserve installer identity and publisher continuity.
+- repository identity is pinned to `alzette-systems/alzette-connect`;
+- only `connect-v*` prereleases and the exact current OS/architecture package
+  name are accepted;
+- the GitHub release page and download URL must match that repository/version;
+- the download size and GitHub-provided `sha256:` asset digest must match before
+  any installer is opened;
+- CI emits GitHub build-provenance attestations for the published assets.
+
+macOS and Windows use a credential-free helper process after the main app exits.
+Linux opens the verified `.deb` with the system package installer. The current
+demo packages are still unsigned/ad-hoc signed, so this mechanism is an internal
+distribution convenience, not proof of production update authenticity.
+
+Production enablement still requires a signed/notarized macOS target, Windows
+publisher identity and timestamp continuity, an approved Linux repository or
+package-signing path, rollback tests, updater-key recovery, and clean-machine
+evidence for every supported OS. TLS or a GitHub digest alone is not sufficient
+for that claim.
 
 ## Rollback
 
@@ -62,8 +74,9 @@ are forward-compatible before changing their on-disk schema.
 
 ## No-current-claim boundary
 
-Repository scaffolding proves none of the following by itself: valid publisher
-identity, notarization acceptance, SmartScreen reputation, Linux desktop
-compatibility, working updater, protected refresh persistence, or Jan/Goose
-automatic provisioning. Claims begin only when the evidence rows in the QA
-matrix are complete for the exact release digest.
+Repository scaffolding and the demo updater prove none of the following by
+themselves: valid publisher identity, notarization acceptance, SmartScreen
+reputation, Linux desktop compatibility, production-safe automatic updates,
+protected refresh persistence, or Jan/Goose automatic provisioning. Claims
+begin only when the evidence rows in the QA matrix are complete for the exact
+release digest.

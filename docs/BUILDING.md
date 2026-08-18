@@ -80,7 +80,7 @@ notarization.
 For an installable internal-demo shape on the current operating system, run:
 
 ```sh
-ALZETTE_CONNECT_VERSION=0.1.0-demo scripts/package-download.sh
+ALZETTE_CONNECT_VERSION=0.2.0-demo.1 scripts/package-download.sh
 ```
 
 This emits an ad-hoc-signed `.app.zip` on macOS, a per-user NSIS `.exe` on

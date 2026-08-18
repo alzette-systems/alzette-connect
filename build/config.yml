@@ -7,7 +7,7 @@ info:
   description: Securely connects supported desktop AI clients to company-authorised Alzette models.
   copyright: Copyright 2026 DUCHENE S.a r.l.-S
   comments: Alzette Connect desktop companion
-  version: 0.1.0
+  version: 0.2.0
 
 dev_mode:
   root_path: .

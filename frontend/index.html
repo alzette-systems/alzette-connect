@@ -209,6 +209,7 @@
 
       <div class="utility-menu" role="menu" hidden>
         <button type="button" role="menuitem" data-manage-portal>Manage in portal</button>
+        <button type="button" role="menuitem" data-check-update>Check for updates…</button>
         <button type="button" role="menuitem" data-open-help>Help &amp; diagnostics</button>
         <button type="button" role="menuitem" data-sign-out>Sign out on this device</button>
         <span role="separator"></span>
@@ -285,14 +286,25 @@
           </ul>
         </section>
 
+        <section class="update-ledger" data-update-panel role="status" aria-live="polite" aria-atomic="true" aria-labelledby="update-heading" hidden>
+          <span class="update-ledger__mark" aria-hidden="true">↑</span>
+          <div class="update-ledger__copy">
+            <h2 id="update-heading" data-update-title>Connect update available</h2>
+            <p data-update-message>Integrity-checked, unsigned internal demo. Connect will close, install, and reopen.</p>
+          </div>
+          <button class="row-action" type="button" data-install-update>Install demo update</button>
+        </section>
+
         <p class="quiet-runtime-note" data-runtime-note>Connect starts when you sign in and stays ready in the background.</p>
       </div>
 
       <footer class="status-footer">
         <button class="footer-link" type="button" data-manage-portal>Manage in portal</button>
         <span aria-hidden="true">·</span>
+        <button class="footer-link" type="button" data-check-update>Updates</button>
+        <span aria-hidden="true">·</span>
         <button class="footer-link" type="button" data-open-help>Help</button>
-        <span class="status-footer__version">v0.1</span>
+        <span class="status-footer__version" data-app-version>v0.2.0-demo.1</span>
       </footer>
     </section>
   </main>

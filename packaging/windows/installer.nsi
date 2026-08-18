@@ -5,7 +5,7 @@ SetCompressor /SOLID lzma
 !include "MUI2.nsh"
 
 !ifndef APP_VERSION
-  !define APP_VERSION "0.1.0-demo"
+  !define APP_VERSION "0.2.0-demo.1"
 !endif
 !ifndef APP_BINARY
   !error "APP_BINARY is required"

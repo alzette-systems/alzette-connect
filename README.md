@@ -23,16 +23,19 @@ If an app is open, has an unsupported version, or already contains an Alzette en
 - a capability-protected, loopback-only OpenAI-compatible proxy for model discovery and chat completions;
 - provenance-checked configuration adapters for Jan 0.8.4 and Goose 1.46.0, using each app's native protected credential entry;
 - native window and tray shell, onboarding, status, offline, no-model, repair, sign-out, and access-ended states;
+- in-app demo-channel update checks, SHA-256 verified downloads, and native install handoff;
 - deterministic frontend, Go, race, vet, security-boundary, and packaging-source checks;
 - unsigned native build smoke on the host platform.
 
-Signed installers, auto-updates, real Casdoor/TLS acceptance, and release qualification on clean macOS, Windows, and Ubuntu machines remain release gates. The app must not be distributed to employees as a production build until those gates pass.
+Signed/notarized installers, publisher continuity, real Casdoor acceptance, and release qualification on clean macOS, Windows, and Ubuntu machines remain release gates. The app must not be distributed to employees as a production build until those gates pass.
 
 ## Download an internal demo build
 
-The **Desktop Downloads** GitHub Actions workflow builds a native-shaped download for macOS (Apple Silicon and Intel), Windows x64, and Ubuntu x64. Open the repository's **Actions** tab, choose **Desktop Downloads**, select **Run workflow**, and enter a demo version such as `0.1.0-demo.2`. When the run is green, download the artifact for the employee's operating system from the run summary.
+Tagged builds are published on the repository's **Releases** page for macOS (Apple Silicon and Intel), Windows x64, and Ubuntu x64. The **Desktop Downloads** workflow also keeps the same files as short-lived Actions artifacts. Releases carry GitHub build-provenance attestations and GitHub's asset SHA-256 digest.
 
 The current downloads are intentionally named `unsigned-demo`: macOS receives an ad-hoc-signed `.app.zip`, Windows receives a per-user `.exe` installer, and Ubuntu receives a `.deb`. They are suitable for the controlled demo and acceptance work, but they are not production releases. macOS notarization, Windows Authenticode signing, platform clean-machine QA, and protected release publication remain mandatory before self-service employee distribution.
+
+Once this updater-enabled build is installed, use **Updates** in the compact footer, **Check for updates…** in the menu, or the tray menu. Connect accepts only a newer prerelease from the pinned `alzette-systems/alzette-connect` repository, downloads the exact package for the current OS/architecture, and verifies the release asset's SHA-256 digest before opening it. macOS and Windows close, replace/install, and reopen Connect; Linux opens the verified `.deb` in the system package installer. Because the previous build did not contain an updater, this release must be installed manually once.
 
 ## Developer quick start
 
@@ -47,7 +50,7 @@ scripts/build-smoke.sh
 To assemble the native-shaped demo download produced by CI on the current operating system:
 
 ```sh
-ALZETTE_CONNECT_VERSION=0.1.0-demo scripts/package-download.sh
+ALZETTE_CONNECT_VERSION=0.2.0-demo.1 scripts/package-download.sh
 ```
 
 On Debian 12 the build script detects the installed GTK3/WebKitGTK 4.1 compatibility stack. Release Linux builds target Ubuntu 24.04 with GTK4/WebKitGTK 6.0.
@@ -82,6 +85,7 @@ Connect listens for its local client endpoint at `127.0.0.1:43128` and uses `127
 - `internal/proxy`: strict loopback OpenAI-compatible boundary
 - `internal/clientconfig`: version-pinned Jan/Goose configuration, protected client secrets, rollback, and launch
 - `internal/credentialstore`: native operating-system protected storage
+- `internal/updater`: pinned release discovery, integrity verification, and native install handoff
 - `internal/appstate`: credential-free runtime state shared with the desktop UI
 - `frontend`: onboarding and recurring connection surface
 - `packaging`, `build`, `.github`: unsigned build scaffolding and release gates

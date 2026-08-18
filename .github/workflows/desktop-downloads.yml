@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Demo build version (for example 0.1.0-demo.2)
+        description: Demo build version (for example 0.2.0-demo.2)
         required: true
-        default: 0.1.0-demo
+        default: 0.2.0-demo.1
         type: string
   push:
     tags:
@@ -36,6 +36,10 @@ jobs:
             label: Windows x64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         shell: bash
@@ -91,6 +95,11 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Attest demo package provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: dist/Alzette-Connect-*
+
       - name: Explain release boundary
         run: |
           printf '%s\n' \
@@ -98,3 +107,34 @@ jobs:
             '' \
             'This is an **unsigned internal demo** download. Production publication remains blocked on platform signing/notarization and clean-machine acceptance.' \
             >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Publish integrity-checked demo release
+    if: startsWith(github.ref, 'refs/tags/connect-v')
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download packaged builds
+        uses: actions/download-artifact@v8
+        with:
+          pattern: alzette-connect-*-unsigned-demo
+          path: dist
+          merge-multiple: true
+
+      - name: Publish immutable-version demo downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists; refusing to replace immutable assets" >&2
+            exit 1
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Alzette Connect ${GITHUB_REF_NAME#connect-v}" \
+              --notes "Unsigned internal demo. Downloads are SHA-256 verified by Connect and carry GitHub build-provenance attestations. macOS notarization and Windows publisher signing are not yet complete." \
+              --prerelease
+          fi

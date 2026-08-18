@@ -12,6 +12,7 @@
     "protected-storage",
     "local-connection",
   ]);
+  const UPDATE_STATES = new Set(["idle", "checking", "current", "available", "downloading", "installing", "installer_opened", "error"]);
 
   const COPY = {
     connected: {
@@ -98,6 +99,7 @@
     checkedAt: "2026-08-18T11:42:00+02:00",
     models: DEFAULT_MODELS,
     applications: DEFAULT_APPLICATIONS,
+    update: { state: "idle", currentVersion: "0.2.0-demo.1", availableVersion: "", message: "" },
     native: false,
   };
 
@@ -134,6 +136,11 @@
   const completeCompany = $("[data-complete-company]");
   const completeModelCount = $("[data-complete-model-count]");
   const completeTime = $("[data-complete-time]");
+  const updatePanel = $("[data-update-panel]");
+  const updateTitle = $("[data-update-title]");
+  const updateMessage = $("[data-update-message]");
+  const installUpdate = $("[data-install-update]");
+  const appVersion = $("[data-app-version]");
 
   let toastTimer = 0;
   let dialogAction = "";
@@ -165,6 +172,16 @@
         status: allowed.has(application.status) ? application.status : "needs_attention",
         version: safeText(application.version, "", 30),
       }));
+  }
+
+  function safeUpdate(update) {
+    if (!update || typeof update !== "object") return state.update;
+    return {
+      state: UPDATE_STATES.has(update.state) ? update.state : "idle",
+      currentVersion: safeText(update.current_version || update.currentVersion, state.update.currentVersion, 40),
+      availableVersion: safeText(update.available_version || update.availableVersion, "", 40),
+      message: safeText(update.message, "", 180),
+    };
   }
 
   function emitAction(action, target = "") {
@@ -393,15 +410,37 @@
     recoveryNote.textContent = copy.recoveryNote;
   }
 
+  function renderUpdate() {
+    const update = state.update;
+    appVersion.textContent = `v${update.currentVersion}`;
+    updatePanel.hidden = update.state === "idle" || update.state === "current";
+    installUpdate.hidden = update.state !== "available";
+    installUpdate.disabled = update.state !== "available";
+    updatePanel.dataset.updateState = update.state;
+    const copy = {
+      checking: ["Checking for updates", update.message || "Reading the pinned demo release channel…"],
+      available: [`Connect ${update.availableVersion} is ready`, update.message || "Integrity-checked, unsigned internal demo. Connect will close, install, and reopen."],
+      downloading: ["Preparing your update", update.message || "Downloading and verifying the update…"],
+      installing: ["Installing update", update.message || "Connect will reopen when the update is ready."],
+      installer_opened: ["Finish in your system installer", update.message || "System installer opened. Finish the update there, then reopen Connect."],
+      error: ["Update check needs attention", update.message || "Connect couldn’t check for updates."],
+    }[update.state];
+    if (!copy) return;
+    updateTitle.textContent = copy[0];
+    updateMessage.textContent = copy[1];
+  }
+
   function applyState(payload = {}, announce = true) {
     const nextState = STATES.has(payload.state) ? payload.state : state.connection;
     const previousState = state.connection;
+    const previousUpdateState = state.update.state;
     state.connection = nextState;
     state.company = safeText(payload.company, state.company);
     state.checkedLabel = safeText(payload.checkedLabel, state.checkedLabel, 50);
     state.checkedAt = safeText(payload.checkedAt, state.checkedAt, 40);
     if (Object.hasOwn(payload, "models")) state.models = safeModels(payload.models);
     if (Object.hasOwn(payload, "applications")) state.applications = safeApplications(payload.applications);
+    if (Object.hasOwn(payload, "update")) state.update = safeUpdate(payload.update);
     if (typeof payload.native === "boolean") setNativeMode(payload.native);
 
     const copy = COPY[nextState];
@@ -421,9 +460,12 @@
     renderModels(nextState);
     renderApps(nextState);
     renderSetupFacts();
+    renderUpdate();
 
     if (announce && previousState !== nextState) {
       announcer.textContent = `${copy.title}. ${copy.description}`;
+    } else if (announce && previousUpdateState !== state.update.state && !["idle", "current"].includes(state.update.state)) {
+      announcer.textContent = `${updateTitle.textContent}. ${updateMessage.textContent}`;
     }
     return { state: nextState };
   }
@@ -465,6 +507,7 @@
       checkedAt: updated && !Number.isNaN(updated.valueOf()) ? updated.toISOString() : state.checkedAt,
       models: modelIDs.map((id) => ({ name: safeText(id, "Company model", 70), detail: "Company model", id, state: "available" })),
       applications: safeApplications(snapshot.applications),
+      update: safeUpdate(snapshot.update),
       native: true,
     };
   }
@@ -612,6 +655,31 @@
       closeUtilityMenu({ restoreFocus: false });
       await performAction("open-help", "", "Opened Alzette Connect help.", "Help and privacy-safe diagnostics would open here.");
     });
+  });
+  $$('[data-check-update]').forEach((button) => {
+    button.addEventListener("click", async () => {
+      closeUtilityMenu({ restoreFocus: false });
+      try {
+        const update = await emitAction("check-update");
+        if (!state.native) {
+          applyState({ update: { state: "current", currentVersion: state.update.currentVersion } }, false);
+          showToast("This demo is using the latest release.");
+        } else if (update?.state === "current") {
+          showToast(update.message || "You’re using the latest demo release.");
+        }
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Connect couldn’t check for updates.");
+      }
+    });
+  });
+  installUpdate.addEventListener("click", async () => {
+    installUpdate.disabled = true;
+    try {
+      await emitAction("install-update");
+    } catch (error) {
+      installUpdate.disabled = false;
+      showToast(error instanceof Error ? error.message : "The update could not be installed.");
+    }
   });
   $$('[data-open-app]').forEach((button) => {
     button.addEventListener("click", async () => {

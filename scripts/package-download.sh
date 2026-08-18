@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
-version="${ALZETTE_CONNECT_VERSION:-0.1.0-demo}"
+version="${ALZETTE_CONNECT_VERSION:-0.2.0-demo.1}"
 version="${version#connect-v}"
 if [[ ! "$version" =~ ^[0-9][0-9A-Za-z._+-]*$ ]]; then
   echo "invalid package version: $version" >&2

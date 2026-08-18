@@ -5,6 +5,14 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 export PATH="$(go env GOPATH)/bin:$PATH"
 
+connect_version="${ALZETTE_CONNECT_VERSION:-0.2.0-demo.1}"
+connect_version="${connect_version#connect-v}"
+if [[ ! "$connect_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+  echo "invalid application version: $connect_version" >&2
+  exit 2
+fi
+export ALZETTE_CONNECT_VERSION="$connect_version"
+
 find_wails() {
   if command -v wails3 >/dev/null 2>&1; then
     command -v wails3
