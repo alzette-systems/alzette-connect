@@ -65,7 +65,7 @@ jobs:
             > dist/UNSIGNED-CI.txt
 
       - name: Upload unsigned smoke output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: alzette-connect-${{ runner.os }}-${{ runner.arch }}-unsigned-ci
           path: |
