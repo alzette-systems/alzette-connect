@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "0.1.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "0.1.0",
+			"CompanyName": "Alzette Systems",
+			"FileDescription": "Securely connects supported desktop AI clients to company-authorised Alzette models.",
+			"LegalCopyright": "Copyright 2026 DUCHENE S.a r.l.-S",
+			"ProductName": "Alzette Connect",
+			"Comments": "Alzette Connect desktop companion"
+		}
+	}
+}

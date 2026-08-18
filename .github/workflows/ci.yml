@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-and-build:
+    name: ${{ matrix.os }} unsigned smoke
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Linux native dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev libsecret-tools
+
+      - name: Verify source and tests
+        run: scripts/verify.sh
+
+      - name: Install pinned Wails CLI
+        run: scripts/install-wails.sh
+
+      - name: Build unsigned application smoke
+        run: scripts/build-smoke.sh
+
+      - name: Record artifact boundary
+        run: |
+          mkdir -p dist
+          printf '%s\n' \
+            'UNSIGNED-CI artifact' \
+            'This build is not signed, notarized, stapled, or approved for customer distribution.' \
+            > dist/UNSIGNED-CI.txt
+
+      - name: Upload unsigned smoke output
+        uses: actions/upload-artifact@v4
+        with:
+          name: alzette-connect-${{ runner.os }}-${{ runner.arch }}-unsigned-ci
+          path: |
+            build/bin/**
+            bin/**
+            dist/UNSIGNED-CI.txt
+          if-no-files-found: warn
+          retention-days: 7

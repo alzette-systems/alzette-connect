@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Alzette Connect
+GenericName=Alzette model connector
+Comment=Connect supported desktop clients to company-authorised Alzette models
+TryExec=alzette-connect
+Exec=alzette-connect
+Icon=systems.alzette.Connect
+Terminal=false
+Categories=Network;Utility;
+Keywords=Alzette;AI;Models;Inference;
+StartupNotify=true

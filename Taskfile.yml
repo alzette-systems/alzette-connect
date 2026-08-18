@@ -1,0 +1,75 @@
+version: '3'
+
+vars:
+  APP_NAME: alzette-connect
+  BIN_DIR: bin
+  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  EXTRA_TAGS: '{{.EXTRA_TAGS | default ""}}'
+
+tasks:
+  install:frontend:
+    internal: true
+    dir: frontend
+    sources:
+      - package.json
+      - package-lock.json
+    generates:
+      - node_modules
+    cmds:
+      - '{{.PACKAGE_MANAGER}} install'
+
+  bindings:
+    internal: true
+    deps: [install:frontend]
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - frontend/bindings/**/*
+    cmds:
+      - wails3 generate bindings {{if .EXTRA_TAGS}}-f '-tags {{.EXTRA_TAGS}}'{{end}} -clean=true -time-type=Date
+
+  frontend:
+    internal: true
+    deps: [bindings]
+    dir: frontend
+    sources:
+      - '**/*'
+      - exclude: node_modules/**/*
+      - exclude: dist/**/*
+    generates:
+      - dist/**/*
+    cmds:
+      - '{{.PACKAGE_MANAGER}} run build'
+
+  build:
+    summary: Build the native desktop application for the host platform.
+    deps: [frontend]
+    cmds:
+      - mkdir -p {{.BIN_DIR}}
+      - go build -trimpath {{if .EXTRA_TAGS}}-tags '{{.EXTRA_TAGS}}'{{end}} -o {{.BIN_DIR}}/{{.APP_NAME}}{{if eq OS "windows"}}.exe{{end}} .
+
+  package:
+    summary: Create an unsigned development package for the host platform.
+    deps: [build]
+    cmds:
+      - scripts/package-current.sh --from-task
+
+  run:
+    summary: Run the native desktop application.
+    deps: [build]
+    cmds:
+      - '{{.BIN_DIR}}/{{.APP_NAME}}{{if eq OS "windows"}}.exe{{end}}'
+
+  dev:
+    summary: Run the desktop application and frontend with live reload.
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  test:
+    summary: Run deterministic Go and frontend checks.
+    cmds:
+      - go test ./...
+      - '{{.PACKAGE_MANAGER}} --prefix frontend test'

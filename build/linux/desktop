@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Alzette Connect
+Comment=Securely connects supported desktop AI clients to company-authorised Alzette models.
+TryExec=alzette-connect
+Exec=alzette-connect
+Terminal=false
+Type=Application
+Icon=systems.alzette.Connect
+Categories=Utility;
+StartupWMClass=systems.alzette.Connect

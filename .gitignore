@@ -1,0 +1,51 @@
+# Go
+/bin/
+/dist/
+/coverage/
+*.test
+*.prof
+coverage.out
+
+# Wails and frontend toolchains
+/build/bin/
+/frontend/bindings/
+/frontend/dist/
+/frontend/node_modules/
+/node_modules/
+/.task/
+*.tsbuildinfo
+
+# Generated package artifacts
+/packaging/generated/
+*.AppImage
+*.deb
+*.rpm
+*.dmg
+*.pkg
+*.msi
+*.msix
+*-installer.exe
+*.sig
+*.sha256
+SHA256SUMS
+
+# Signing and notarization material must never enter the repository.
+*.p12
+*.pfx
+*.cer
+*.crt
+*.key
+*.mobileprovision
+*.provisionprofile
+*.notarytool-profile
+
+# Local configuration and editor state
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

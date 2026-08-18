@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Alzette Systems mark</title>
+  <desc id="desc">A simplified trace of the Alzette valley around Luxembourg City.</desc>
+  <rect width="512" height="512" rx="92" fill="#10151a"/>
+  <path transform="translate(34 34) scale(.88)" d="M22 22 C34 64 66 89 92 121 C112 145 126 154 150 157 C178 162 206 140 232 128 C274 110 320 95 355 78 C380 65 420 69 443 83 C463 94 465 110 461 128 C457 145 445 157 435 171 C422 189 410 205 391 216 C370 227 347 237 322 245 C297 253 276 255 252 248 C229 241 210 248 190 263 C173 276 162 295 160 317 C157 342 166 369 180 391 C193 412 212 429 233 446 C249 459 272 460 294 458 C313 456 326 441 344 421 C365 397 390 376 414 362 C433 351 450 355 490 370" fill="none" stroke="#0d9e63" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
