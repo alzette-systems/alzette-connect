@@ -87,6 +87,16 @@ package_windows() {
   generate_icons
   makensis_bin="$(command -v makensis || command -v makensis.exe || true)"
   if [[ -z "$makensis_bin" ]]; then
+    for candidate in \
+      "/c/Program Files (x86)/NSIS/makensis.exe" \
+      "/c/Program Files/NSIS/makensis.exe"; do
+      if [[ -x "$candidate" ]]; then
+        makensis_bin="$candidate"
+        break
+      fi
+    done
+  fi
+  if [[ -z "$makensis_bin" ]]; then
     echo "NSIS makensis is required to create the Windows installer" >&2
     exit 1
   fi
