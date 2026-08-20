@@ -5,6 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 required=(
+  THIRD_PARTY_NOTICES.md
   packaging/README.md
   packaging/icons/alzette-connect.svg
   packaging/linux/systems.alzette.Connect.desktop
@@ -24,6 +25,13 @@ required=(
 for path in "${required[@]}"; do
   if [[ ! -s "$path" ]]; then
     echo "required packaging source is missing or empty: $path" >&2
+    exit 1
+  fi
+done
+
+for packaging_source in scripts/package-current.sh scripts/package-download.sh packaging/windows/installer.nsi; do
+  if ! grep -Fq 'THIRD_PARTY_NOTICES' "$packaging_source"; then
+    echo "third-party notices are not included by: $packaging_source" >&2
     exit 1
   fi
 done

@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+source scripts/use-go-toolchain.sh
 
 version="${ALZETTE_CONNECT_VERSION:-0.2.0-demo.1}"
 version="${version#connect-v}"
@@ -73,6 +74,7 @@ package_macos() {
   cp build/darwin/Info.plist "$app/Contents/Info.plist"
   cp "$stage/icons.icns" "$app/Contents/Resources/icons.icns"
   cp "$notice" "$app/Contents/Resources/UNSIGNED-DEMO.txt"
+  cp THIRD_PARTY_NOTICES.md "$app/Contents/Resources/THIRD_PARTY_NOTICES.md"
   marketing_version="${version%%-*}"
   marketing_version="${marketing_version%%+*}"
   bundle_version="${GITHUB_RUN_NUMBER:-$marketing_version}"
@@ -106,6 +108,7 @@ package_windows() {
     -DAPP_BINARY="$(cygpath -w "$repo_root/$binary")" \
     -DAPP_ICON="$(cygpath -w "$stage/alzette-connect.ico")" \
     -DNOTICE_FILE="$(cygpath -w "$notice")" \
+    -DTHIRD_PARTY_NOTICES_FILE="$(cygpath -w "$repo_root/THIRD_PARTY_NOTICES.md")" \
     -DOUTPUT_FILE="$(cygpath -w "$output")" \
     packaging/windows/installer.nsi
 }
@@ -128,6 +131,7 @@ package_linux() {
   install -m 0644 build/appicon.png \
     "$root/usr/share/icons/hicolor/1024x1024/apps/systems.alzette.Connect.png"
   install -m 0644 "$notice" "$root/usr/share/doc/alzette-connect/UNSIGNED-DEMO.txt"
+  install -m 0644 THIRD_PARTY_NOTICES.md "$root/usr/share/doc/alzette-connect/THIRD_PARTY_NOTICES.md"
   cat > "$root/DEBIAN/control" <<EOF
 Package: alzette-connect
 Version: $deb_version

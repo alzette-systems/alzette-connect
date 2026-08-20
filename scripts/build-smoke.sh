@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+source scripts/use-go-toolchain.sh
 export PATH="$(go env GOPATH)/bin:$PATH"
 
 connect_version="${ALZETTE_CONNECT_VERSION:-0.2.0-demo.1}"

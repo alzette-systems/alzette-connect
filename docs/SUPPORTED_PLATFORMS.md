@@ -27,6 +27,13 @@ release notes must name the exact tested Jan and Goose versions. Detecting an
 installed but untested client version must produce a truthful guided/manual
 path, not silently edit its profile.
 
+ChatGPT is currently a disabled-by-default macOS acceptance candidate, not a
+supported client. Windows ChatGPT is distributed through the Microsoft Store;
+Connect must add package-aware discovery, publisher verification, and
+activation before it can expose a Windows adapter. Linux has no ChatGPT Desktop
+adapter; Linux Connect remains supported through its separately qualified
+clients.
+
 ## Removing support
 
 Raising a minimum OS, architecture, WebView, desktop client, or server protocol

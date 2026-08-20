@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+source scripts/use-go-toolchain.sh
 
 go_build_tags=""
 if [[ "$(uname -s)" == "Linux" ]] && command -v pkg-config >/dev/null 2>&1 && \

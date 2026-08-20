@@ -16,6 +16,9 @@ SetCompressor /SOLID lzma
 !ifndef NOTICE_FILE
   !error "NOTICE_FILE is required"
 !endif
+!ifndef THIRD_PARTY_NOTICES_FILE
+  !error "THIRD_PARTY_NOTICES_FILE is required"
+!endif
 !ifndef OUTPUT_FILE
   !error "OUTPUT_FILE is required"
 !endif
@@ -45,6 +48,7 @@ Section "Alzette Connect" SEC_APP
   SetOutPath "$INSTDIR"
   File /oname=alzette-connect.exe "${APP_BINARY}"
   File /oname=UNSIGNED-DEMO.txt "${NOTICE_FILE}"
+  File /oname=THIRD_PARTY_NOTICES.md "${THIRD_PARTY_NOTICES_FILE}"
   File /oname=alzette-connect.ico "${APP_ICON}"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   WriteRegStr HKCU "Software\AlzetteSystems\AlzetteConnect" "InstallLocation" "$INSTDIR"
@@ -65,6 +69,7 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\Alzette Connect"
   Delete "$INSTDIR\alzette-connect.exe"
   Delete "$INSTDIR\UNSIGNED-DEMO.txt"
+  Delete "$INSTDIR\THIRD_PARTY_NOTICES.md"
   Delete "$INSTDIR\alzette-connect.ico"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"

@@ -30,6 +30,9 @@ substitute.
 | Jan pinned-version guided/adapter flow | Required | Required | Required | First request and clean exit on named version |
 | Goose pinned-version adapter flow | Required | Required | Required | First request and clean exit on named version |
 | Unknown Jan/Goose version is not modified | Required | Required | Required | Profile digest unchanged |
+| ChatGPT candidate is absent from normal builds | N/A | Required | Required | Build-gate test and native UI evidence |
+| ChatGPT Responses candidate flow | N/A | Required before enabling | Not available until Store integration exists | Exact bundle/version, buffered/streaming text, function tools, model switching, protocol errors, profile restore, and server ledger evidence |
+| ChatGPT process capability is Responses-only | N/A | Required before enabling | Required with future adapter | Chat Completions and every unsupported path fail with the same per-launch capability |
 | Employee removed from group loses next-request access | Required | Required | Required | End-to-end authorization test |
 | Owner sees all active company endpoints | Required | Required | Required | End-to-end context/model test |
 | Tampered update is rejected | Required | Required | Required | Invalid metadata/artifact signature test |
@@ -47,6 +50,9 @@ Test both AppImage and `.deb`; passing one does not qualify the other.
 Record hardware architecture, macOS version, bundle/Team identifiers,
 notarization request identifier, stapling result, Gatekeeper result, Keychain
 prompt behavior, menu-bar icon in light/dark mode, and Universal binary slices.
+For the internal ChatGPT candidate, also record the exact ChatGPT bundle path,
+`com.openai.codex` identifier, observed version, config/catalogue before/after
+digests, and forced-kill recovery result.
 
 ## Windows-specific evidence
 

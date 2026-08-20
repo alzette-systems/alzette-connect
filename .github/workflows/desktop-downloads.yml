@@ -45,6 +45,9 @@ jobs:
         shell: bash
     env:
       ALZETTE_CONNECT_VERSION: ${{ inputs.version || github.ref_name }}
+      # This workflow produces explicitly unsigned internal demo packages.
+      # Production release workflows must omit this until named acceptance.
+      ALZETTE_CONNECT_CHATGPT_CANDIDATE: 'true'
     steps:
       - name: Check out source
         uses: actions/checkout@v7

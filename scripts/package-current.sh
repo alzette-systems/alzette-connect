@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+source scripts/use-go-toolchain.sh
 
 case "$(uname -s)" in
   Linux*) target="linux" ;;
@@ -32,6 +33,7 @@ trap 'rm -rf -- "$stage"' EXIT
 payload="$stage/alzette-connect-$target-$arch"
 mkdir -p "$payload/bin"
 cp "$binary" "$payload/bin/"
+cp THIRD_PARTY_NOTICES.md "$payload/THIRD_PARTY_NOTICES.md"
 
 if [[ "$target" == "linux" ]]; then
   mkdir -p "$payload/share/applications" "$payload/share/icons/hicolor/scalable/apps"
