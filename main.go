@@ -105,16 +105,16 @@ func main() {
 	})
 	desktop.app = app
 	app.OnShutdown(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 		defer cancel()
-		_ = runtime.Stop(ctx)
+		desktop.shutdown(ctx)
 	})
 
 	primaryWindow = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:             "connect",
 		Title:            "Alzette Connect",
-		Width:            940,
-		Height:           680,
+		Width:            720,
+		Height:           640,
 		MinWidth:         380,
 		MinHeight:        560,
 		InitialPosition:  application.WindowCentered,

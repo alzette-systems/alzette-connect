@@ -35,6 +35,7 @@ type Runtime struct {
 
 	mu         sync.Mutex
 	connecting bool
+	launching  bool
 	session    *session.Session
 	proxy      *proxy.Server
 }
@@ -79,7 +80,7 @@ func (r *Runtime) Resume(ctx context.Context, membershipID string) (bool, error)
 
 func (r *Runtime) Connect(ctx context.Context, membershipID string) error {
 	r.mu.Lock()
-	if r.connecting || r.session != nil || r.proxy != nil {
+	if r.connecting || r.session != nil {
 		r.mu.Unlock()
 		return errors.New("Alzette Connect is already running")
 	}
@@ -106,31 +107,111 @@ func (r *Runtime) Connect(ctx context.Context, membershipID string) error {
 		return err
 	}
 	contexts := connected.Contexts()
+	r.mu.Lock()
+	r.session = connected
+	r.mu.Unlock()
 	if len(contexts) == 0 {
 		r.set(NoAccess, "Your company has not assigned a model yet", "no_model_access", contexts)
 		return session.ErrAccessRemoved
 	}
-	if _, err := connected.SelectContext(membershipID); err != nil {
+	selected, err := connected.SelectContext(membershipID)
+	if err != nil {
 		r.set(NoAccess, "Choose an available company workspace", "context_selection_required", contexts)
 		return err
 	}
-	if _, _, err := connected.EnsureHumanCredential(ctx); err != nil {
-		r.fail(err)
+	if len(selected.ModelAliases) == 0 {
+		r.set(NoAccess, "Your company has not assigned a model yet", "no_model_access", contexts)
+		return session.ErrAccessRemoved
+	}
+	r.set(Ready, "Your company models are ready", "", contexts)
+	return nil
+}
+
+// SelectContext completes a previously authenticated multi-company choice.
+// The opaque membership ID comes only from the current credential-free state
+// snapshot and is revalidated by the Session before it becomes selected.
+func (r *Runtime) SelectContext(_ context.Context, membershipID string) error {
+	r.mu.Lock()
+	connected := r.session
+	r.mu.Unlock()
+	if connected == nil {
+		return session.ErrSignInRequired
+	}
+	selected, err := connected.SelectContext(membershipID)
+	if err != nil {
 		return err
 	}
-	local, err := proxy.Start(proxy.Config{Address: r.config.ProxyAddress, Provider: connected, Random: r.config.Random})
+	contexts := connected.Contexts()
+	if len(selected.ModelAliases) == 0 {
+		r.set(NoAccess, "Your company has not assigned a model yet", "no_model_access", contexts)
+		return session.ErrAccessRemoved
+	}
+	r.set(Ready, "Your company models are ready", "", contexts)
+	return nil
+}
+
+// StartLaunch creates inference authority only when the employee launches a
+// qualified application. Sign-in itself therefore carries no active local
+// listener or human inference credential.
+func (r *Runtime) StartLaunch(ctx context.Context, allowedInferencePaths ...string) error {
+	r.mu.Lock()
+	if r.launching || r.proxy != nil {
+		r.mu.Unlock()
+		return errors.New("an Alzette application session is already active")
+	}
+	connected := r.session
+	if connected == nil {
+		r.mu.Unlock()
+		return session.ErrSignInRequired
+	}
+	r.launching = true
+	r.mu.Unlock()
+	defer func() {
+		r.mu.Lock()
+		r.launching = false
+		r.mu.Unlock()
+	}()
+	if _, _, err := connected.EnsureHumanCredential(ctx); err != nil {
+		if errors.Is(err, session.ErrAccessRemoved) {
+			r.set(AccessRemoved, "Your company access has ended", "access_removed", nil)
+		} else {
+			r.set(Offline, "Alzette Connect could not create an application session", "service_unavailable", connected.Contexts())
+		}
+		return err
+	}
+	local, err := proxy.Start(proxy.Config{Address: r.config.ProxyAddress, Provider: connected, Random: r.config.Random, AllowedInferencePaths: allowedInferencePaths})
 	if err != nil {
 		revokeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		_ = connected.RevokeGrant(revokeCtx)
 		cancel()
-		r.set(Failed, "The private connection could not start", "local_proxy_unavailable", contexts)
+		r.set(Failed, "The private connection could not start", "local_proxy_unavailable", connected.Contexts())
 		return err
 	}
 	r.mu.Lock()
-	r.session, r.proxy = connected, local
+	r.proxy = local
 	r.mu.Unlock()
-	r.set(Ready, "Your private connection is ready", "", contexts)
 	return nil
+}
+
+// StopLaunch closes the local listener before revoking the grant, while
+// retaining the protected employee sign-in for the next explicit launch.
+func (r *Runtime) StopLaunch(ctx context.Context) error {
+	r.mu.Lock()
+	local, connected := r.proxy, r.session
+	r.proxy = nil
+	r.mu.Unlock()
+	var closeErr, revokeErr error
+	if local != nil {
+		closeErr = local.Close(ctx)
+	}
+	if connected != nil {
+		revokeErr = connected.RevokeGrant(ctx)
+		r.set(Ready, "Your company models are ready", "", connected.Contexts())
+	}
+	if closeErr != nil {
+		return closeErr
+	}
+	return revokeErr
 }
 
 // ClientConnection is private runtime material for a trusted native adapter or
@@ -154,7 +235,7 @@ func (r *Runtime) Stop(ctx context.Context) error {
 	if local != nil {
 		closeErr = local.Close(ctx)
 	}
-	if connected != nil {
+	if connected != nil && local != nil {
 		revokeErr = connected.RevokeGrant(ctx)
 	}
 	r.set(SignInRequired, "Alzette Connect is stopped", "", nil)
@@ -191,7 +272,14 @@ func (r *Runtime) set(phase Phase, message, errorCode string, values []session.C
 	for _, value := range values {
 		contexts = append(contexts, Context{ID: value.MembershipID, Organisation: value.Organisation, Project: value.Project, Environment: value.Environment, Models: append([]string(nil), value.ModelAliases...)})
 	}
-	r.state.Set(Snapshot{Phase: phase, Message: message, ErrorCode: errorCode, Contexts: contexts, UpdatedAt: r.config.Clock().UTC()})
+	r.mu.Lock()
+	connected := r.session
+	r.mu.Unlock()
+	selectedID := ""
+	if connected != nil {
+		selectedID = connected.SelectedContext().MembershipID
+	}
+	r.state.Set(Snapshot{Phase: phase, Message: message, ErrorCode: errorCode, Contexts: contexts, SelectedContextID: selectedID, UpdatedAt: r.config.Clock().UTC()})
 }
 
 func (r *Runtime) fail(err error) {

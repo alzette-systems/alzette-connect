@@ -29,6 +29,9 @@ type Config struct {
 	HTTPTransport http.RoundTripper
 	Random        io.Reader
 	MaxBodyBytes  int64
+	// AllowedInferencePaths scopes a process capability to the exact wire
+	// protocol declared by its adapter. /v1/models remains local and read-only.
+	AllowedInferencePaths []string
 }
 
 type Server struct {
@@ -57,6 +60,16 @@ func Start(config Config) (*Server, error) {
 	}
 	if config.MaxBodyBytes < 1024 || config.MaxBodyBytes > 64<<20 {
 		return nil, errors.New("proxy body limit is outside supported bounds")
+	}
+	allowedPaths := make(map[string]bool)
+	if len(config.AllowedInferencePaths) == 0 {
+		config.AllowedInferencePaths = []string{"/v1/chat/completions"}
+	}
+	for _, path := range config.AllowedInferencePaths {
+		if path != "/v1/chat/completions" && path != "/v1/responses" {
+			return nil, errors.New("proxy inference path is unsupported")
+		}
+		allowedPaths[path] = true
 	}
 	target, err := url.Parse(config.Provider.GatewayBaseURL())
 	if err != nil || target.Scheme != "https" && target.Scheme != "http" || target.Host == "" || target.User != nil || target.RawQuery != "" || target.Fragment != "" || !strings.HasSuffix(target.Path, "/v1") || target.Scheme == "http" && !isLoopbackHost(target.Hostname()) {
@@ -92,6 +105,10 @@ func Start(config Config) (*Server, error) {
 			request.Header = make(http.Header)
 			request.Header.Set("Accept", accept)
 			request.Header.Set("Content-Type", contentType)
+			// A nil slice tells ReverseProxy not to synthesize X-Forwarded-For.
+			// The remote gateway needs the employee authority, not local process
+			// addressing or a second proxy-derived trust signal.
+			request.Header["X-Forwarded-For"] = nil
 		},
 		Transport:     &credentialTransport{provider: config.Provider, base: transport},
 		FlushInterval: -1,
@@ -99,18 +116,18 @@ func Start(config Config) (*Server, error) {
 			http.Error(w, "Alzette request could not be completed", http.StatusBadGateway)
 		},
 	}
-	handler := strictHandler(listener.Addr().String(), capability, config.MaxBodyBytes, config.Provider, reverse)
+	handler := strictHandler(listener.Addr().String(), capability, config.MaxBodyBytes, allowedPaths, config.Provider, reverse)
 	httpServer := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 90 * time.Second, MaxHeaderBytes: 16 << 10}
 	server := &Server{listener: listener, httpServer: httpServer, baseURL: "http://" + listener.Addr().String() + "/v1", capability: capability}
 	go func() { _ = httpServer.Serve(listener) }()
 	return server, nil
 }
 
-func strictHandler(host, capability string, maxBody int64, provider CredentialProvider, reverse http.Handler) http.Handler {
+func strictHandler(host, capability string, maxBody int64, allowedPaths map[string]bool, provider CredentialProvider, reverse http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		if request.Host != host || request.URL.IsAbs() || request.URL.RawPath != "" || request.URL.RawQuery != "" || request.Header.Get("Origin") != "" || request.Header.Get("Cookie") != "" || request.Header.Get("Proxy-Authorization") != "" || hasForwardingHeader(request.Header) || request.ContentLength > maxBody {
+		if request.Host != host || request.URL.IsAbs() || request.URL.RawPath != "" || request.URL.RawQuery != "" || request.Header.Get("Origin") != "" || request.Header.Get("Cookie") != "" || request.Header.Get("Content-Encoding") != "" || request.Header.Get("Proxy-Authorization") != "" || hasForwardingHeader(request.Header) || request.ContentLength > maxBody {
 			http.Error(w, "Not found", http.StatusNotFound)
 			return
 		}
@@ -131,7 +148,7 @@ func strictHandler(host, capability string, maxBody int64, provider CredentialPr
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{"object": "list", "data": data})
 			return
 		}
-		if request.Method != http.MethodPost || request.URL.Path != "/v1/chat/completions" || !isJSON(request.Header.Get("Content-Type")) {
+		if request.Method != http.MethodPost || !allowedPaths[request.URL.Path] || !isJSON(request.Header.Get("Content-Type")) {
 			http.Error(w, "Not found", http.StatusNotFound)
 			return
 		}

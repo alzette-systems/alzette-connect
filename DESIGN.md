@@ -2,9 +2,9 @@
 
 ## North Star
 
-Alzette Connect is a pocket connection ledger: a tiny, dependable instrument that answers three questions in order—am I connected, which company models can I use, and are my applications ready? It inherits Alzette's operational paper-and-ink world rather than adopting consumer VPN chrome or a generic settings dashboard.
+Alzette Connect is an app-first launch ledger: a compact, dependable instrument that answers three questions in order—which company models can I use, which installed applications are qualified, and which application session is active? It inherits Alzette's operational paper-and-ink world rather than adopting consumer VPN chrome or a generic settings dashboard.
 
-The physical scene is a quiet workday on an employee laptop in mixed office light. The interface is therefore light, compact, and native-feeling; one night-colored connection field provides depth and a stable status anchor.
+The physical scene is a quiet workday on an employee laptop in mixed office light. The interface is therefore light, compact, and native-feeling; one night-colored launch or session plane provides depth and a stable action anchor.
 
 ## Visual Language
 
@@ -14,7 +14,7 @@ The physical scene is a quiet workday on an employee laptop in mixed office ligh
 - **Ink** `#10151a` carries primary reading and actions.
 - **Graphite** `#4f5b64` and **faint graphite** `#667179` carry supporting text while meeting contrast requirements.
 - **Rule grey** `#d9ddd8` divides ledger rows.
-- **Night** `#0d1114`, **night raised** `#151d22`, and **night rule** `#2a363e` form the connection instrument.
+- **Night** `#0d1114`, **night raised** `#151d22`, and **night rule** `#2a363e` form the launch and session plane.
 - **River green** `#0d9e63` is scarce: verified connection, focus, and affirmative progress only. Use deep green `#087c4e` for readable links.
 - **Quiet amber** `#8b5b17` / `#fff4de` means degraded, offline, or needs attention.
 - **Quiet red** `#9f3034` / `#fff0ef` means access ended or a destructive action.
@@ -33,43 +33,43 @@ Spacing follows a 4px compact sub-grid inside the popover and the incumbent 8px 
 
 ## Surfaces
 
-### Onboarding window
+### Signed-out window
 
-A two-part normal window: a fixed night-colored trust rail records the four setup boundaries, while the paper work area contains exactly one decision per step. On narrow screens the rail becomes a horizontal progress ledger above the content. Browser sign-in and application configuration are described before they happen. No password or token field appears inside Connect.
+A two-part normal window: a night-colored employee-connection statement and a paper work area that records the three custody boundaries before one browser sign-in action. No password, provider URL, API key, or token field appears inside Connect.
 
-### Compact status surface
+### Application launcher
 
-The popover is 380px wide and typically no taller than 620px. Its order is fixed: brand/context header, dark connection instrument, company-model ledger, application ledger, then quiet utility actions. It must remain a useful normal window on Linux and at large text sizes. A compact surface may scroll vertically but never horizontally.
+The primary window is 720×640 and remains usable at approximately 520×480. Its order is fixed: brand/context header, synchronized company-catalogue strip, application ledger, then one night-colored launch plane. The application ledger may scroll vertically but the window never scrolls horizontally.
 
-### Connection instrument
+### Launch and session plane
 
-The dark field is the only dominant panel. It pairs a written state with company context and freshness. A river-trace line may animate once from connecting to connected; there is no pulsing ambient motion. Offline and attention states use amber; access ended uses quiet red.
+The dark field is the only dominant panel. Before launch it names the selected application and catalogue behavior; while running it names the supervised application and offers tray/disconnect actions. Preparing becomes a full-window progress ledger. Recovery uses quiet amber and never claims revocation or restoration that was not confirmed.
 
 ### Ledger rows
 
-Models and applications are flat rows separated by rules, not collections of cards. Each row has a plain-language name, compact verifying metadata, and an explicit state/action. “No models” is an entitlement state with guidance, not an error or zero-looking metric.
+Models and applications are flat rows separated by rules, not collections of cards. Each application row has a plain-language name, exact observed version when qualified, delivery mode, compatible-model count, and explicit support state. “No models” is an entitlement state with guidance, not an error or zero-looking metric.
 
 ## Interaction Rules
 
-- The primary action names the outcome: “Continue in browser,” “Connect Jan and Goose,” “Open Jan,” or “Try again.”
+- The primary action names the outcome: “Sign in with Alzette,” “Verify and launch ChatGPT,” “Launch Jan Desktop,” or “Disconnect.”
 - “Sign out on this device” states its scope. If activated, confirmation explains that local applications will disconnect.
 - “Quit Alzette Connect” warns that quitting ends the local connection because the confirmed product direction is a persistent companion.
 - Connecting has bounded copy and a cancel/retry path; no unbounded spinner communicates progress alone.
 - Access ended removes retry and setup actions. It offers portal/help context and device sign-out only.
-- Application configuration remains distinct from model availability and from identity state.
+- Sign-in, application qualification/configuration, model availability, and an active inference session remain distinct.
 - Keyboard focus uses a 3px river-green outline with 3px offset. Hover is supplementary.
 
 ## Motion
 
-Use one authored transition: while connecting, the river trace is drawn across the dark connection field and then settles to a static verified line. All content is visible without animation. Under `prefers-reduced-motion: reduce`, transition durations are effectively removed and the trace is immediately complete.
+Use one authored transition: while preparing, the current progress-ledger marker breathes gently and then settles when the application starts. There is no ambient pulsing elsewhere. All content is visible without animation. Under `prefers-reduced-motion: reduce`, transition durations are effectively removed.
 
 ## Responsive and Native Adaptation
 
-- macOS uses menu-bar popover behavior after onboarding.
-- Windows uses the same compact tray surface, with Start menu and notification entry points handled by the native shell.
-- Linux uses a status item where supported and a normal compact window fallback everywhere else.
+- macOS keeps the launcher available from the menu bar while supervising an active application session.
+- Windows keeps the same launcher available from the tray, with Start menu and notification entry points handled by the native shell.
+- Linux uses a status item where supported and the normal launcher window everywhere else.
 - Native shells own title bars, window shadows, menu placement, notifications, and platform font rendering. The web content must not fake traffic lights, title-bar drag regions, or OS menus.
-- Below 620px onboarding becomes one column. Below 380px the status surface uses the full viewport width and reduces side padding, never hides labels, and allows vertical scrolling.
+- Below 600px signed-out content becomes one column and application rows reflow without hiding their written status. The application ledger scrolls vertically while the launch/session plane remains visible.
 
 ## Accessibility
 
@@ -82,6 +82,6 @@ Use one authored transition: while connecting, the river trace is drawn across t
 
 ## Do / Don't
 
-**Do** keep the company name and last-check time beside connection status. **Do** cap the compact model preview at three rows and provide “View all in portal” when more exist. **Do** make illustrative demo data identifiable in code.
+**Do** keep company/workspace context in the header. **Do** expose the complete current alias catalogue in the drawer. **Do** distinguish detected, qualified, configured, and running states.
 
 **Don't** expose API keys, local proxy addresses, provider URLs, or token expiry in the ordinary UI. **Don't** use glass, gradients, glow, decorative card grids, or indefinite pulsing. **Don't** say “all systems operational” when only the device connection was checked. **Don't** make the tray icon the only way to recover the app on Windows or Linux.

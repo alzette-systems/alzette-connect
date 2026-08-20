@@ -7,8 +7,27 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
+	"time"
 )
+
+func TestQualifyPiRequiresTheNamedRelease(t *testing.T) {
+	root := canonicalTempRoot(t)
+	pi := filepath.Join(root, "pi")
+	mustWrite(t, pi, []byte("#!/bin/sh\nprintf 'pi 0.84.2\\n'\n"), 0o700)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	version, err := QualifyPi(ctx, pi)
+	if err != nil || version != PiSupportedVersion {
+		t.Fatalf("version=%q err=%v", version, err)
+	}
+	mustWrite(t, pi, []byte("#!/bin/sh\nprintf 'pi 0.85.0\\n'\n"), 0o700)
+	if _, err := QualifyPi(ctx, pi); !errors.Is(err, ErrWrongVersion) {
+		t.Fatalf("wrong version error=%v", err)
+	}
+}
 
 type memorySecrets struct{ values map[string]string }
 
@@ -31,12 +50,136 @@ type stopped bool
 func (s stopped) Running(context.Context, string) (bool, error) { return bool(s), nil }
 
 func testManager(t *testing.T, root string, secrets *memorySecrets, running RunningChecker) *Manager {
+	return testManagerForOS(t, root, "linux", secrets, running)
+}
+
+func testManagerForOS(t *testing.T, root, goos string, secrets *memorySecrets, running RunningChecker) *Manager {
 	t.Helper()
-	manager, err := New(Options{GOOS: "linux", HomeDir: root, UserConfigDir: filepath.Join(root, ".config"), UserDataDir: filepath.Join(root, ".local", "share"), SecretStore: secrets, Running: running})
+	manager, err := New(Options{GOOS: goos, HomeDir: root, UserConfigDir: filepath.Join(root, ".config"), UserDataDir: filepath.Join(root, ".local", "share"), SecretStore: secrets, Running: running})
 	if err != nil {
 		t.Fatal(err)
 	}
 	return manager
+}
+
+func TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	before := "# employee setting\nmodel = \"usual-model\"\nmodel_provider = \"openai\"\n\n[features]\napps = true\n"
+	mustWrite(t, configPath, []byte(before), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	secrets := &memorySecrets{values: map[string]string{}}
+	requestConnection := connection("alp_abcdefghijklmnopqrstuvwxyz0123456789")
+	requestConnection.Models = []string{"document-review", "alzette-chat"}
+	result, err := testManagerForOS(t, root, "darwin", secrets, stopped(false)).ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: requestConnection, ConfigPath: configPath, ExecutablePath: executable, Version: "1.2.3",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Client != ChatGPT || result.Version != "1.2.3" || result.Status != Configured {
+		t.Fatalf("unexpected result: %+v", result)
+	}
+	updated, _ := os.ReadFile(configPath)
+	text := string(updated)
+	for _, required := range []string{"# employee setting", "[features]", "apps = true", `model_provider = "alzette-connect"`, `wire_api = "responses"`, `env_key = "ALZETTE_CONNECT_SESSION_KEY"`, "request_max_retries = 0"} {
+		if !contains(updated, []byte(required)) {
+			t.Fatalf("ChatGPT config missing %q:\n%s", required, text)
+		}
+	}
+	if strings.Contains(text, "alp_") {
+		t.Fatal("ChatGPT configuration persisted the loopback capability")
+	}
+	catalogPath := filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)
+	catalog, _ := os.ReadFile(catalogPath)
+	var listing struct {
+		Models []struct {
+			Slug string `json:"slug"`
+		} `json:"models"`
+	}
+	if json.Unmarshal(catalog, &listing) != nil || len(listing.Models) != 2 || listing.Models[0].Slug != "alzette-chat" || listing.Models[1].Slug != "document-review" {
+		t.Fatalf("unexpected ChatGPT catalogue: %s", catalog)
+	}
+	for _, required := range []string{`"additional_speed_tiers": []`, `"supports_parallel_tool_calls": false`, `"supports_search_tool": false`, `"input_modalities": [`} {
+		if !strings.Contains(string(catalog), required) {
+			t.Fatalf("ChatGPT catalogue missing %s: %s", required, catalog)
+		}
+	}
+	if strings.Contains(string(catalog), requestConnection.Capability) {
+		t.Fatal("ChatGPT catalogue persisted the loopback capability")
+	}
+	if err := result.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	restored, _ := os.ReadFile(configPath)
+	if string(restored) != before {
+		t.Fatalf("ChatGPT config was not restored exactly:\n%s", restored)
+	}
+	if _, err := os.Stat(catalogPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("generated catalogue survived rollback: %v", err)
+	}
+}
+
+func TestConfigureChatGPTRejectsUnownedProvider(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	mustWrite(t, configPath, []byte("[model_providers.alzette-connect]\nname = \"Someone else\"\n"), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	_, err := testManagerForOS(t, root, "windows", &memorySecrets{values: map[string]string{}}, stopped(false)).ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	})
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("unowned provider error=%v", err)
+	}
+}
+
+func TestChatGPTRollbackRefusesToOverwriteAChangedProfile(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	mustWrite(t, configPath, []byte("model = \"personal\"\n"), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	result, err := testManagerForOS(t, root, "darwin", &memorySecrets{values: map[string]string{}}, stopped(false)).ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mustWrite(t, configPath, []byte("model = \"employee-changed-this\"\n"), 0o600)
+	if err := result.Rollback(context.Background()); !errors.Is(err, ErrStaleRollback) {
+		t.Fatalf("rollback error=%v, want ErrStaleRollback", err)
+	}
+	changed, _ := os.ReadFile(configPath)
+	if string(changed) != "model = \"employee-changed-this\"\n" {
+		t.Fatalf("stale rollback overwrote the employee profile: %s", changed)
+	}
+}
+
+func TestLaunchChatGPTUsesChildEnvironmentNotArguments(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("the Unix fixture is covered by native Windows launch acceptance")
+	}
+	root := canonicalTempRoot(t)
+	executable := filepath.Join(root, "ChatGPT")
+	observed := filepath.Join(root, "observed")
+	mustWrite(t, executable, []byte("#!/bin/sh\nprintf '%s|%s' \"$ALZETTE_CONNECT_SESSION_KEY\" \"$#\" > observed\n"), 0o700)
+	requestConnection := connection("alp_abcdefghijklmnopqrstuvwxyz0123456789")
+	process, err := LaunchChatGPT(context.Background(), executable, requestConnection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := <-process.Done; err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(observed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != requestConnection.Capability+"|0" {
+		t.Fatalf("observed child boundary=%q", data)
+	}
 }
 
 func canonicalTempRoot(t *testing.T) string {

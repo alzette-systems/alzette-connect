@@ -31,9 +31,32 @@ type Context struct {
 }
 
 type Application struct {
-	ID      string `json:"id"`
-	Status  string `json:"status"`
-	Version string `json:"version,omitempty"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Status       string `json:"status"`
+	Version      string `json:"version,omitempty"`
+	Detail       string `json:"detail,omitempty"`
+	DeliveryMode string `json:"delivery_mode"`
+	ModelCount   int    `json:"model_count"`
+	Installed    bool   `json:"installed"`
+	Configured   bool   `json:"configured"`
+}
+
+// Launch is a credential-free view of the application lifecycle. It contains
+// only the information needed to explain progress and recovery in the native
+// UI; process handles, paths, local capabilities, and grants never cross the
+// Wails boundary.
+type Launch struct {
+	Phase          string    `json:"phase"`
+	ApplicationID  string    `json:"application_id,omitempty"`
+	Application    string    `json:"application,omitempty"`
+	Message        string    `json:"message,omitempty"`
+	StartedAt      time.Time `json:"started_at,omitempty"`
+	ModelCount     int       `json:"model_count,omitempty"`
+	CleanupPending bool      `json:"cleanup_pending,omitempty"`
+	LocalClosed    bool      `json:"local_closed,omitempty"`
+	GrantStatus    string    `json:"grant_status,omitempty"`
+	ProfileStatus  string    `json:"profile_status,omitempty"`
 }
 
 // Update is presentation-only release state. It never includes a download URL,
@@ -46,13 +69,17 @@ type Update struct {
 }
 
 type Snapshot struct {
-	Phase        Phase         `json:"phase"`
-	Message      string        `json:"message"`
-	ErrorCode    string        `json:"error_code,omitempty"`
-	Contexts     []Context     `json:"contexts,omitempty"`
-	Applications []Application `json:"applications,omitempty"`
-	Update       Update        `json:"update"`
-	UpdatedAt    time.Time     `json:"updated_at"`
+	Phase             Phase         `json:"phase"`
+	Message           string        `json:"message"`
+	ErrorCode         string        `json:"error_code,omitempty"`
+	Contexts          []Context     `json:"contexts,omitempty"`
+	SelectedContextID string        `json:"selected_context_id,omitempty"`
+	Applications      []Application `json:"applications,omitempty"`
+	Launch            Launch        `json:"launch"`
+	Update            Update        `json:"update"`
+	Platform          string        `json:"platform,omitempty"`
+	TrayAvailable     bool          `json:"tray_available"`
+	UpdatedAt         time.Time     `json:"updated_at"`
 }
 
 // Model is the concurrency-safe handoff between the security core and a tray

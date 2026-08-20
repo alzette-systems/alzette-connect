@@ -2,6 +2,7 @@ package clientconfig
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,37 +11,86 @@ import (
 	"strings"
 )
 
+// Process is a supervised child application. No command line, environment, or
+// executable path is exposed through this handle.
+type Process struct {
+	PID  int
+	Done <-chan error
+	cmd  *exec.Cmd
+}
+
 // Launch starts an exact client executable without a shell, arguments, or
 // credentials. On macOS callers pass Contents/MacOS/<client>, not an .app
-// directory. The process is detached from Connect after a successful start.
+// directory. The child is reaped in the background even when a legacy caller
+// does not retain the supervised handle.
 func Launch(ctx context.Context, executable string) (int, error) {
-	if err := ctx.Err(); err != nil {
-		return 0, err
-	}
-	if !filepath.IsAbs(executable) {
-		return 0, fmt.Errorf("%w: executable path must be absolute", ErrUnsafePath)
-	}
-	info, err := os.Stat(executable)
+	process, err := launchObserved(ctx, executable, nil, nil, nil)
 	if err != nil {
 		return 0, err
 	}
-	if !info.Mode().IsRegular() || runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 || runtime.GOOS == "windows" && !strings.EqualFold(filepath.Ext(executable), ".exe") {
-		return 0, fmt.Errorf("%w: client executable is not an executable regular file", ErrUnsafePath)
+	return process.PID, nil
+}
+
+// LaunchObserved starts an exact qualified desktop executable and keeps a
+// wait handle so Connect can reflect crashes/exits and disconnect safely.
+func LaunchObserved(ctx context.Context, executable string) (*Process, error) {
+	return launchObserved(ctx, executable, nil, nil, nil)
+}
+
+func launchObserved(ctx context.Context, executable string, arguments, environment []string, cleanup func()) (*Process, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
-	command := exec.Command(executable)
+	if !filepath.IsAbs(executable) {
+		return nil, fmt.Errorf("%w: executable path must be absolute", ErrUnsafePath)
+	}
+	info, err := os.Stat(executable)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() || runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 || runtime.GOOS == "windows" && !strings.EqualFold(filepath.Ext(executable), ".exe") {
+		return nil, fmt.Errorf("%w: client executable is not an executable regular file", ErrUnsafePath)
+	}
+	command := exec.Command(executable, arguments...)
 	command.Dir = filepath.Dir(executable)
-	command.Env = launchEnvironment(os.Environ())
+	command.Env = append(launchEnvironment(os.Environ()), environment...)
 	command.Stdin = nil
 	command.Stdout = nil
 	command.Stderr = nil
 	if err := command.Start(); err != nil {
-		return 0, err
+		return nil, err
 	}
-	pid := command.Process.Pid
-	if err := command.Process.Release(); err != nil {
-		return 0, err
+	done := make(chan error, 1)
+	process := &Process{PID: command.Process.Pid, Done: done, cmd: command}
+	go func() {
+		err := command.Wait()
+		if cleanup != nil {
+			cleanup()
+		}
+		done <- err
+		close(done)
+	}()
+	return process, nil
+}
+
+// Stop requests a graceful exit and escalates only after the caller's bounded
+// context expires. A process that already exited is treated as stopped.
+func (p *Process) Stop(ctx context.Context) error {
+	if p == nil || p.cmd == nil || p.cmd.Process == nil {
+		return nil
 	}
-	return pid, nil
+	if err := p.cmd.Process.Signal(os.Interrupt); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		_ = p.cmd.Process.Kill()
+	}
+	select {
+	case <-p.Done:
+		return nil
+	case <-ctx.Done():
+		if err := p.cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+			return err
+		}
+		return ctx.Err()
+	}
 }
 
 func launchEnvironment(parent []string) []string {

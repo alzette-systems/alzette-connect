@@ -13,9 +13,19 @@ import (
 )
 
 type desktopClients struct {
-	janExecutable   string
-	gooseExecutable string
-	gooseASAR       string
+	piExecutable      string
+	janExecutable     string
+	gooseExecutable   string
+	gooseASAR         string
+	chatGPTExecutable string
+}
+
+// Set by release packaging only for explicitly labelled internal candidate
+// builds. Production/default builds keep an unaccepted adapter non-launchable.
+var chatGPTCandidateEnabled = "false"
+
+func chatGPTCandidateIsEnabled() bool {
+	return strings.EqualFold(strings.TrimSpace(chatGPTCandidateEnabled), "true")
 }
 
 func (c *desktopClients) applicationStates() []appstate.Application {
@@ -29,21 +39,39 @@ func (c *desktopClients) applicationStates() []appstate.Application {
 	if c.gooseExecutable != "" && c.gooseASAR == "" {
 		gooseStatus = "needs_attention"
 	}
-	return []appstate.Application{
-		{ID: "jan", Status: status(c.janExecutable)},
-		{ID: "goose", Status: gooseStatus},
+	values := []appstate.Application{
+		{ID: "pi", Name: "Pi", Status: status(c.piExecutable), DeliveryMode: "catalogue", Installed: c.piExecutable != "", Detail: "Qualification runs before launch"},
+		{ID: "jan", Name: "Jan Desktop", Status: status(c.janExecutable), DeliveryMode: "catalogue", Installed: c.janExecutable != "", Detail: "Version 0.8.4"},
+		{ID: "goose", Name: "Goose Desktop", Status: gooseStatus, DeliveryMode: "catalogue", Installed: c.gooseExecutable != "", Detail: "Version 1.46.0"},
 	}
+	chatGPTStatus := status(c.chatGPTExecutable)
+	chatGPTDetail := "Version observed and temporary Responses profile prepared at launch"
+	if !chatGPTCandidateIsEnabled() {
+		chatGPTStatus = "not_supported"
+		chatGPTDetail = "Internal adapter candidate is disabled in this build"
+	} else if runtime.GOOS == "windows" {
+		chatGPTStatus = "not_supported"
+		chatGPTDetail = "Windows Store application integration is not yet available"
+	} else if runtime.GOOS == "linux" {
+		chatGPTStatus = "protocol_unavailable"
+		chatGPTDetail = "ChatGPT is macOS-only in the current candidate"
+	}
+	values = append(values, appstate.Application{ID: "chatgpt", Name: "ChatGPT", Status: chatGPTStatus, DeliveryMode: "primary_plus_catalogue", Installed: c.chatGPTExecutable != "", Detail: chatGPTDetail})
+	return values
 }
 
 func discoverDesktopClients(home string) *desktopClients {
 	result := &desktopClients{
-		janExecutable:   validExecutableOverride(os.Getenv("ALZETTE_CONNECT_JAN_EXECUTABLE")),
-		gooseExecutable: validExecutableOverride(os.Getenv("ALZETTE_CONNECT_GOOSE_EXECUTABLE")),
-		gooseASAR:       validRegularOverride(os.Getenv("ALZETTE_CONNECT_GOOSE_ASAR")),
+		piExecutable:      validExecutableOverride(os.Getenv("ALZETTE_CONNECT_PI_EXECUTABLE")),
+		janExecutable:     validExecutableOverride(os.Getenv("ALZETTE_CONNECT_JAN_EXECUTABLE")),
+		gooseExecutable:   validExecutableOverride(os.Getenv("ALZETTE_CONNECT_GOOSE_EXECUTABLE")),
+		gooseASAR:         validRegularOverride(os.Getenv("ALZETTE_CONNECT_GOOSE_ASAR")),
+		chatGPTExecutable: validExecutableOverride(os.Getenv("ALZETTE_CONNECT_CHATGPT_EXECUTABLE")),
 	}
-	var janCandidates, gooseCandidates, asarCandidates []string
+	var piCandidates, janCandidates, gooseCandidates, asarCandidates, chatGPTCandidates []string
 	switch runtime.GOOS {
 	case "darwin":
+		piCandidates = []string{"/opt/homebrew/bin/pi", "/usr/local/bin/pi", filepath.Join(home, ".local", "bin", "pi")}
 		janCandidates = []string{
 			"/Applications/Jan.app/Contents/MacOS/Jan",
 			filepath.Join(home, "Applications", "Jan.app", "Contents", "MacOS", "Jan"),
@@ -60,8 +88,15 @@ func discoverDesktopClients(home string) *desktopClients {
 			filepath.Join(home, "Applications", "Goose.app", "Contents", "Resources", "app.asar"),
 			filepath.Join(home, "Applications", "goose.app", "Contents", "Resources", "app.asar"),
 		}
+		chatGPTCandidates = []string{
+			"/Applications/ChatGPT.app/Contents/MacOS/ChatGPT",
+			"/Applications/Codex.app/Contents/MacOS/Codex",
+			filepath.Join(home, "Applications", "ChatGPT.app", "Contents", "MacOS", "ChatGPT"),
+			filepath.Join(home, "Applications", "Codex.app", "Contents", "MacOS", "Codex"),
+		}
 	case "windows":
 		local := os.Getenv("LOCALAPPDATA")
+		piCandidates = []string{filepath.Join(local, "Programs", "pi", "pi.exe")}
 		janCandidates = []string{filepath.Join(local, "Programs", "Jan", "Jan.exe")}
 		gooseCandidates = []string{
 			filepath.Join(local, "Programs", "Goose", "Goose.exe"),
@@ -72,12 +107,16 @@ func discoverDesktopClients(home string) *desktopClients {
 			filepath.Join(local, "Programs", "goose", "resources", "app.asar"),
 		}
 	case "linux":
+		piCandidates = []string{filepath.Join(home, ".local", "bin", "pi"), "/usr/local/bin/pi", "/usr/bin/pi"}
 		janCandidates = []string{filepath.Join(home, ".local", "bin", "jan"), "/usr/local/bin/jan", "/usr/bin/jan"}
 		gooseCandidates = []string{filepath.Join(home, ".local", "bin", "goose"), "/usr/local/bin/goose", "/usr/bin/goose"}
 		asarCandidates = []string{
 			filepath.Join(home, ".local", "lib", "goose", "resources", "app.asar"),
 			"/opt/Goose/resources/app.asar", "/opt/goose/resources/app.asar",
 		}
+	}
+	if result.piExecutable == "" {
+		result.piExecutable = firstExecutable(piCandidates)
 	}
 	if result.janExecutable == "" {
 		result.janExecutable = firstRegular(janCandidates, true)
@@ -88,7 +127,28 @@ func discoverDesktopClients(home string) *desktopClients {
 	if result.gooseASAR == "" {
 		result.gooseASAR = firstRegular(asarCandidates, false)
 	}
+	if result.chatGPTExecutable == "" {
+		result.chatGPTExecutable = firstExecutable(chatGPTCandidates)
+	}
 	return result
+}
+
+// firstExecutable accepts a canonical installation symlink only after it has
+// been resolved to an absolute regular executable. The resolved target—not the
+// writable link—is retained for launch.
+func firstExecutable(candidates []string) string {
+	for _, candidate := range candidates {
+		if path := validPath(candidate, true); path != "" {
+			return path
+		}
+		resolved, err := filepath.EvalSymlinks(candidate)
+		if err == nil && filepath.IsAbs(resolved) {
+			if path := validPath(resolved, true); path != "" {
+				return path
+			}
+		}
+	}
+	return ""
 }
 
 func validExecutableOverride(path string) string { return validPath(path, true) }
@@ -135,7 +195,7 @@ func friendlyClientError(name string, err error) error {
 	case errors.Is(err, clientconfig.ErrWrongVersion):
 		return fmt.Errorf("This %s version is not supported by this Connect build", name)
 	case errors.Is(err, clientconfig.ErrConflict):
-		return fmt.Errorf("%s already has an Alzette Connect entry that Connect does not own", name)
+		return fmt.Errorf("%s has a conflicting Alzette Connect profile; review its existing profile before trying again", name)
 	case errors.Is(err, clientconfig.ErrSecretStore):
 		return fmt.Errorf("Unlock your computer's protected credential store, then try again")
 	case errors.Is(err, clientconfig.ErrUnsafePath):

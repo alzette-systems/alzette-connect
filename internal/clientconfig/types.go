@@ -8,6 +8,7 @@ import (
 const (
 	JanSupportedVersion   = "0.8.4"
 	GooseSupportedVersion = "1.46.0"
+	ChatGPTProviderID     = "alzette-connect"
 )
 
 var (
@@ -23,8 +24,9 @@ var (
 type Client string
 
 const (
-	Jan   Client = "jan"
-	Goose Client = "goose"
+	Jan     Client = "jan"
+	Goose   Client = "goose"
+	ChatGPT Client = "chatgpt"
 )
 
 type Connection struct {
@@ -49,6 +51,15 @@ type GooseRequest struct {
 	ConfigDir      string
 	AppASARPath    string
 	ExecutablePath string
+}
+
+type ChatGPTRequest struct {
+	Connection Connection
+	// ConfigPath overrides ~/.codex/config.toml for tests and explicitly
+	// discovered portable installations.
+	ConfigPath     string
+	ExecutablePath string
+	Version        string
 }
 
 type Status string

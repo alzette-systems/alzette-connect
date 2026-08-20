@@ -7,6 +7,7 @@ vars:
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
   EXTRA_TAGS: '{{.EXTRA_TAGS | default ""}}'
   VERSION: '{{.ALZETTE_CONNECT_VERSION | default "0.2.0-demo.1"}}'
+  CHATGPT_CANDIDATE: '{{.ALZETTE_CONNECT_CHATGPT_CANDIDATE | default "false"}}'
 
 tasks:
   install:frontend:
@@ -50,7 +51,7 @@ tasks:
     deps: [frontend]
     cmds:
       - mkdir -p {{.BIN_DIR}}
-      - go build -trimpath -ldflags '-X main.version={{.VERSION}}' {{if .EXTRA_TAGS}}-tags '{{.EXTRA_TAGS}}'{{end}} -o {{.BIN_DIR}}/{{.APP_NAME}}{{if eq OS "windows"}}.exe{{end}} .
+      - go build -trimpath -ldflags '-X main.version={{.VERSION}} -X main.chatGPTCandidateEnabled={{.CHATGPT_CANDIDATE}}' {{if .EXTRA_TAGS}}-tags '{{.EXTRA_TAGS}}'{{end}} -o {{.BIN_DIR}}/{{.APP_NAME}}{{if eq OS "windows"}}.exe{{end}} .
 
   package:
     summary: Create an unsigned development package for the host platform.

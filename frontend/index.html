@@ -1,330 +1,237 @@
 <!doctype html>
+<!--
+THESIS: Alzette Connect is an application launcher that makes entitled model access visible without turning model choice into a wizard; it refuses the dashboard/sidebar pattern.
+OWN-WORLD: Warm paper, night ink, thin ledger rules, scarce river green, system sans, and mono only for scope and observed state.
+STORY: Sign in once, see the synchronized model catalogue, choose a qualified installed application, and launch it through a supervised Alzette connection.
+FIRST VIEWPORT: Compact context header, one catalogue synchronization row, a dominant application ledger, and one exact launch surface anchored at the bottom.
+FORM: App-first launch ledger with persistent supervision; grounded structure 3, dressed in the established Scoped Ledger system; surface seed 38a1b843.
+-->
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#faf9f6">
-  <title>Alzette Connect</title>
-  <link rel="icon" href="assets/alzette-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <!--
-    THESIS: A pocket connection ledger answers ready, available, and configured without becoming a settings dashboard.
-    OWN-WORLD: Warm paper, ink rules, one night connection instrument, scarce river-green verification, squared native controls.
-    STORY: The employee signs in, sees exactly what Connect changes, verifies Jan and Goose, then returns only when status changes.
-    FIRST VIEWPORT: Onboarding pairs a dark boundary ledger with one paper decision; recurring status compresses the same hierarchy into 380px.
-    FORM: Precisely specified persistent desktop companion; compact ledger staging extends the established Scoped Control Room world, no seed required.
-  -->
-  <a class="skip-link" href="#app-content">Skip to Alzette Connect</a>
-
-  <nav class="demo-dock" aria-label="Prototype views">
-    <span class="demo-dock__label">Prototype</span>
-    <button class="demo-dock__tab" type="button" data-demo-view="onboarding" aria-pressed="true">First run</button>
-    <button class="demo-dock__tab" type="button" data-demo-view="status" aria-pressed="false">Status</button>
-    <label class="demo-dock__state" for="demo-state">
-      <span>State</span>
-      <select id="demo-state">
-        <option value="connected">Connected</option>
-        <option value="signed-out">Signed out</option>
-        <option value="connecting">Connecting</option>
-        <option value="offline">Offline</option>
-        <option value="no-models">No models</option>
-        <option value="setup-attention">Setup attention</option>
-        <option value="access-ended">Access ended</option>
-      </select>
-    </label>
-  </nav>
-
-  <main id="app-content" class="stage" tabindex="-1">
-    <section id="onboarding-view" class="window onboarding-window" aria-labelledby="onboarding-title">
-      <aside class="trust-rail" aria-label="Setup progress">
-        <a class="brand brand--dark" href="#" data-view-link="onboarding" aria-label="Alzette Connect home">
-          <img src="assets/alzette-mark.svg" alt="" width="32" height="32">
-          <span>alzette<span>.connect</span></span>
-        </a>
-
-        <ol class="setup-ledger">
-          <li data-step-marker="welcome" aria-current="step">
-            <span class="setup-ledger__mark" aria-hidden="true">1</span>
-            <span><strong>Welcome</strong><small>What Connect does</small></span>
-          </li>
-          <li data-step-marker="signin">
-            <span class="setup-ledger__mark" aria-hidden="true">2</span>
-            <span><strong>Company sign-in</strong><small>Continue securely in browser</small></span>
-          </li>
-          <li data-step-marker="setup">
-            <span class="setup-ledger__mark" aria-hidden="true">3</span>
-            <span><strong>Applications</strong><small>Connect Jan and Goose</small></span>
-          </li>
-          <li data-step-marker="complete">
-            <span class="setup-ledger__mark" aria-hidden="true">4</span>
-            <span><strong>Ready</strong><small>Verify company models</small></span>
-          </li>
-        </ol>
-
-        <div class="trust-note">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6z"/></svg>
-          <p><strong>Your sign-in stays on this device.</strong> Connect never asks you to copy an API key.</p>
-        </div>
-      </aside>
-
-      <div class="onboarding-content">
-        <div class="window-utility">
-          <span>First-time setup</span>
-          <button class="text-button" type="button" data-open-help>Need help?</button>
-        </div>
-
-        <section class="onboarding-step" data-step="welcome" aria-labelledby="onboarding-title">
-          <p class="kicker">Private AI at work</p>
-          <h1 id="onboarding-title">Your company models, in the tools you know.</h1>
-          <p class="lead">Alzette Connect keeps Jan and Goose connected to the private models your company has approved. Set it up once; it stays quietly ready.</p>
-
-          <div class="tool-preview" aria-label="Supported applications">
-            <div class="tool-preview__route" aria-hidden="true">
-              <svg viewBox="0 0 180 60" preserveAspectRatio="none"><path d="M2 32 C36 2 62 57 91 29 S142 7 178 31"/></svg>
-            </div>
-            <article class="tool-chip">
-              <span class="tool-monogram" aria-hidden="true">J</span>
-              <span><strong>Jan</strong><small>Desktop</small></span>
-              <span class="tool-chip__future">Ready to connect</span>
-            </article>
-            <article class="tool-chip">
-              <span class="tool-monogram tool-monogram--goose" aria-hidden="true">G</span>
-              <span><strong>Goose</strong><small>Desktop or CLI</small></span>
-              <span class="tool-chip__future">Ready to connect</span>
-            </article>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Alzette Connect</title>
+    <link rel="icon" href="assets/alzette-mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="mockup-lab">
+      <section class="connect-window" aria-label="Alzette Connect">
+        <header class="app-bar">
+          <button class="brand brand--button" type="button" data-home aria-label="Alzette Connect applications">
+            <img src="assets/alzette-mark.svg" alt="" width="24" height="24">
+            <span>Alzette Connect</span>
+          </button>
+          <div class="app-bar__context" data-auth-only hidden>
+            <span class="quiet-label">WORKSPACE</span>
+            <strong data-company-name></strong>
+            <span data-workspace-name></span>
           </div>
+          <button class="icon-button" type="button" aria-label="Open account and settings menu" aria-expanded="false" data-menu-button>
+            <span aria-hidden="true">•••</span>
+          </button>
+          <div class="account-menu" data-account-menu hidden>
+            <strong data-menu-company>Alzette Connect</strong>
+            <span data-menu-context>Signed out on this device</span>
+            <button type="button" data-diagnostics>Diagnostics and updates</button>
+            <button type="button" data-portal-models>View company models</button>
+            <button type="button" data-sign-out>Sign out on this device</button>
+            <button type="button" data-quit>Quit Alzette Connect</button>
+          </div>
+        </header>
 
-          <div class="action-cluster">
-            <button class="button button--primary" type="button" data-next-step="signin">
-              Start setup
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg>
+        <section class="screen screen--signed-out" data-screen="signed-out" aria-labelledby="sign-in-title">
+          <div class="sign-in-copy">
+            <span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <p class="quiet-label" data-sign-in-label>EMPLOYEE CONNECTION</p>
+            <h1 id="sign-in-title" tabindex="-1" data-sign-in-title>Launch your approved AI tools.</h1>
+            <p data-sign-in-copy>Sign in to load the models assigned by your company. Connect keeps remote credentials out of desktop applications.</p>
+          </div>
+          <div class="sign-in-action">
+            <dl data-sign-in-facts>
+              <div><dt>Models</dt><dd>Set by your company</dd></div>
+              <div><dt>Applications</dt><dd>Qualified before launch</dd></div>
+              <div><dt>Remote access</dt><dd>No reusable key is shared</dd></div>
+            </dl>
+            <button class="button button--primary button--wide" type="button" data-sign-in>Sign in with Alzette</button>
+            <button class="button button--secondary button--wide" type="button" data-cancel-sign-in hidden>Cancel sign-in</button>
+            <small data-sign-in-detail>Authentication opens in your default browser.</small>
+          </div>
+        </section>
+
+        <section class="screen context-screen" data-screen="contexts" aria-labelledby="contexts-title" hidden>
+          <div class="context-intro">
+            <p class="quiet-label">COMPANY WORKSPACE</p>
+            <h1 id="contexts-title" tabindex="-1">Choose where to work</h1>
+            <p>Your company model access is separated by workspace. Connect will remember this choice and recheck it next time.</p>
+          </div>
+          <div class="context-list" data-context-list role="list"></div>
+          <div class="context-actions">
+            <button class="button button--secondary" type="button" data-context-sign-out>Sign out</button>
+          </div>
+        </section>
+
+        <section class="screen screen--workspace" data-screen="launcher" aria-labelledby="applications-title" hidden>
+          <section class="catalogue-strip" aria-label="Available Alzette model catalogue">
+            <button class="catalogue-summary" type="button" aria-expanded="false" data-catalogue-toggle>
+              <span class="catalogue-summary__signal" aria-hidden="true"></span>
+              <span><strong data-catalogue-count>No company models available</strong><small data-catalogue-freshness>Current company access</small></span>
+              <span class="catalogue-summary__action">View models <b aria-hidden="true">⌄</b></span>
             </button>
-            <p>About two minutes · You can undo application setup later</p>
-          </div>
-        </section>
-
-        <section class="onboarding-step" data-step="signin" aria-labelledby="signin-title" hidden>
-          <p class="kicker">Company sign-in</p>
-          <h1 id="signin-title" tabindex="-1">Continue in your browser.</h1>
-          <p class="lead">We’ll open your company sign-in page. When you finish, return here—Connect will continue automatically.</p>
-
-          <div class="boundary-note">
-            <div class="boundary-note__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16v13H4zM4 9h16M7 7.5h.01M10 7.5h.01"/></svg>
+            <div class="model-drawer" data-model-drawer hidden>
+              <div class="model-drawer__heading">
+                <div><span class="quiet-label">CURRENT CATALOGUE</span><strong>Assigned model aliases</strong></div>
+                <span>Compatibility is checked per application.</span>
+              </div>
+              <ul data-model-list></ul>
+              <p class="model-drawer__empty" data-model-empty hidden>No models are currently assigned. Your company owner manages access through groups.</p>
             </div>
-            <div>
-              <strong>Sign in on app.alzette.systems</strong>
-              <p>Your browser handles your company identity. Connect receives approval for this device—never your password.</p>
+          </section>
+
+          <section class="attention-strip authority-strip" data-authority-warning hidden role="status">
+            <span aria-hidden="true">!</span>
+            <div><strong>Company access could not be refreshed.</strong><small data-authority-detail>Reconnect before launching an application.</small></div>
+            <button class="button button--secondary" type="button" data-retry-authority>Reconnect</button>
+          </section>
+
+          <section class="cleanup-banner" data-cleanup-banner hidden aria-live="polite">
+            <span aria-hidden="true">!</span>
+            <div><strong>One application profile still needs review.</strong><small>The private connection is closed; local cleanup remains.</small></div>
+            <button type="button" data-review-cleanup>Review</button>
+          </section>
+          <section class="attention-strip attention-strip--inline" data-launch-error hidden role="status">
+            <span aria-hidden="true">!</span>
+            <div><strong data-launch-error-title>Application could not be launched.</strong><small data-launch-error-detail>Review the application status and try again.</small></div>
+          </section>
+
+          <section class="application-region">
+            <header class="section-heading">
+              <div><p class="quiet-label">APPLICATIONS</p><h1 id="applications-title" tabindex="-1">Choose where to work</h1></div>
+              <p>Double-click or press Enter</p>
+            </header>
+            <ul class="application-list" aria-label="Applications" aria-describedby="application-help" data-application-list></ul>
+            <p class="sr-only" id="application-help">Select a ready application and press Enter, or double-click it, to launch through Alzette.</p>
+          </section>
+
+          <section class="launch-plane" aria-live="polite" data-launch-plane hidden>
+            <div class="launch-plane__copy">
+              <span class="launch-glyph" aria-hidden="true">↗</span>
+              <span><strong data-launch-title></strong><small data-launch-detail></small></span>
             </div>
-          </div>
-
-          <div class="action-cluster action-cluster--row">
-            <button class="button button--primary" type="button" data-browser-signin>
-              Continue in browser
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4h9v9M16 4 8 12M14 11v5H4V6h5"/></svg>
-            </button>
-            <button class="button button--quiet" type="button" data-previous-step="welcome">Back</button>
-          </div>
-
-          <div class="waiting-state" data-signin-wait hidden role="status" aria-live="polite">
-            <span class="activity-mark" aria-hidden="true"></span>
-            <span><strong>Waiting for browser sign-in…</strong><small>You can keep this window open.</small></span>
-            <button class="footer-link" type="button" data-cancel-signin>Cancel</button>
-          </div>
+            <button class="button button--green" type="button" data-launch></button>
+          </section>
         </section>
 
-        <section class="onboarding-step" data-step="setup" aria-labelledby="setup-title" hidden>
-          <div class="identity-line">
-            <span class="identity-line__check" aria-hidden="true">✓</span>
-            <span><strong>Company sign-in complete</strong></span>
-          </div>
-          <p class="kicker" data-setup-company>Northstar &amp; Co.</p>
-          <h1 id="setup-title" tabindex="-1">Connect your applications.</h1>
-          <p class="lead" data-setup-summary>Connect will verify your installed applications before changing their connection.</p>
-
-          <div class="setup-table" role="list" aria-label="Applications to configure">
-            <div class="setup-table__row" role="listitem">
-              <span class="tool-monogram" aria-hidden="true">J</span>
-              <span><strong>Jan</strong><small data-setup-app-detail="jan">Version 0.8.4 · closed</small></span>
-              <span class="status-label status-label--ready" data-setup-app-status="jan">Ready to set up</span>
+        <section class="screen screen--workspace" data-screen="preparing" aria-labelledby="preparing-title" hidden>
+          <section class="catalogue-strip catalogue-strip--quiet">
+            <div class="catalogue-summary">
+              <span class="catalogue-summary__signal" aria-hidden="true"></span>
+              <span><strong data-preparing-models></strong><small>Current company access confirmed</small></span>
             </div>
-            <div class="setup-table__row" role="listitem">
-              <span class="tool-monogram tool-monogram--goose" aria-hidden="true">G</span>
-              <span><strong>Goose</strong><small data-setup-app-detail="goose">Version 1.46.0 · closed</small></span>
-              <span class="status-label status-label--ready" data-setup-app-status="goose">Ready to set up</span>
+          </section>
+          <section class="preparing-region">
+            <p class="quiet-label" data-preparing-label>LAUNCHING APPLICATION</p>
+            <h1 id="preparing-title" tabindex="-1">Preparing the connection</h1>
+            <p data-preparing-description>Connect is checking the application and creating a private session. Remote credentials remain inside Alzette Connect.</p>
+            <ol class="progress-ledger" aria-label="Launch progress">
+              <li class="is-complete"><i aria-hidden="true">✓</i><span><strong>Company access checked</strong><small>Current model catalogue loaded</small></span></li>
+              <li class="is-current"><i aria-hidden="true"></i><span><strong>Application and profile</strong><small>Qualifying this installation</small></span></li>
+              <li><i aria-hidden="true"></i><span><strong>Private connection</strong><small>Created only for this launch</small></span></li>
+              <li><i aria-hidden="true"></i><span><strong>Open application</strong><small>Waiting for connection</small></span></li>
+            </ol>
+          </section>
+          <section class="preparing-action">
+            <span><strong>Keep Connect open</strong><small>This usually takes a few seconds.</small></span>
+            <button class="button button--secondary-dark" type="button" data-cancel-launch>Cancel</button>
+          </section>
+        </section>
+
+        <section class="screen screen--workspace" data-screen="running" aria-labelledby="running-title" hidden>
+          <section class="catalogue-strip catalogue-strip--quiet">
+            <div class="catalogue-summary">
+              <span class="catalogue-summary__signal" aria-hidden="true"></span>
+              <span><strong data-running-models></strong><small data-running-catalogue>Current company access confirmed</small></span>
             </div>
-          </div>
-
-          <div class="change-summary">
-            <h2>What Connect will do</h2>
-            <ul>
-              <li>Prepare <strong data-setup-model-count>2 company models</strong> for Jan and Goose</li>
-              <li>Start when you sign in to this computer</li>
-              <li>Keep the private connection available in the background</li>
-            </ul>
-          </div>
-
-          <div class="action-cluster action-cluster--row">
-            <button class="button button--primary" type="button" data-configure-apps>Connect Jan and Goose</button>
-            <button class="button button--quiet" type="button" data-previous-step="signin">Back</button>
-          </div>
-        </section>
-
-        <section class="onboarding-step" data-step="complete" aria-labelledby="complete-title" hidden>
-          <div class="completion-mark" aria-hidden="true">
-            <svg viewBox="0 0 96 96"><path class="completion-mark__river" d="M9 51c15-25 29 18 44-4s22-16 34-1"/><path class="completion-mark__check" d="m35 50 10 10 20-25"/></svg>
-          </div>
-          <p class="kicker">Connection verified</p>
-          <h1 id="complete-title" tabindex="-1">You’re connected.</h1>
-          <p class="lead">Jan and Goose can now use the company models available to you. Alzette Connect will stay quietly ready in your menu bar or system tray.</p>
-
-          <dl class="verification-ledger">
-            <div><dt>Company</dt><dd data-complete-company>Northstar &amp; Co.</dd></div>
-            <div><dt>Models available</dt><dd data-complete-model-count>2</dd></div>
-            <div><dt>Applications</dt><dd>Jan · Goose</dd></div>
-            <div><dt>Verified</dt><dd><time data-complete-time>Just now</time></dd></div>
-          </dl>
-
-          <div class="action-cluster action-cluster--row">
-            <button class="button button--primary" type="button" data-finish-setup>Show connection status</button>
-            <button class="button button--quiet" type="button" data-open-app="jan">Open Jan</button>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <section id="status-view" class="window status-window" aria-labelledby="status-heading" hidden>
-      <header class="status-header">
-        <div class="brand">
-          <img src="assets/alzette-mark.svg" alt="" width="30" height="30">
-          <span>alzette<span>.connect</span></span>
-        </div>
-        <button class="icon-button" type="button" aria-label="Open help and settings" aria-haspopup="menu" data-utility-menu>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1"/><circle cx="10" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg>
-        </button>
-      </header>
-
-      <div class="utility-menu" role="menu" hidden>
-        <button type="button" role="menuitem" data-manage-portal>Manage in portal</button>
-        <button type="button" role="menuitem" data-check-update>Check for updates…</button>
-        <button type="button" role="menuitem" data-open-help>Help &amp; diagnostics</button>
-        <button type="button" role="menuitem" data-sign-out>Sign out on this device</button>
-        <span role="separator"></span>
-        <button type="button" role="menuitem" data-quit>Quit Alzette Connect</button>
-      </div>
-
-      <div class="status-scroll">
-        <section class="connection-instrument" data-connection-state="connected" aria-labelledby="status-heading">
-          <div class="connection-instrument__topline">
-            <span class="connection-signal" aria-hidden="true">
-              <svg viewBox="0 0 54 20"><path d="M2 12c9-13 16 8 25-3s15-7 25 1"/></svg>
-            </span>
-            <span class="state-code" data-state-code>Connection ready</span>
-          </div>
-          <h1 id="status-heading" tabindex="-1" data-status-title>Connected</h1>
-          <p data-status-description>Your private connection is ready for Jan and Goose.</p>
-          <div class="connection-context">
-            <span data-company-name>Northstar &amp; Co.</span>
-            <time data-checked-time datetime="2026-08-18T11:42:00+02:00">Checked just now</time>
-          </div>
-          <div class="connection-progress" aria-hidden="true"><span></span></div>
-        </section>
-
-        <section class="attention-action" data-primary-recovery hidden>
-          <button class="button button--primary button--full" type="button" data-recovery-action>Try again</button>
-          <p data-recovery-note>We’ll check the connection without changing your application setup.</p>
-        </section>
-
-        <section class="ledger-section" aria-labelledby="models-heading">
-          <header class="ledger-heading">
-            <div>
-              <p class="section-label">Company access</p>
-              <h2 id="models-heading">Models</h2>
+          </section>
+          <section class="application-region application-region--running">
+            <header class="section-heading">
+              <div><p class="quiet-label">ACTIVE APPLICATION</p><h1 id="running-title" tabindex="-1" data-running-title>Connected through Alzette</h1></div>
+              <p>Disconnect to launch another app</p>
+            </header>
+            <ul class="application-list application-list--compact" aria-label="Application session" data-running-list></ul>
+          </section>
+          <section class="session-plane">
+            <div class="session-plane__status">
+              <span class="session-pulse" aria-hidden="true"></span>
+              <span><strong data-session-title></strong><small data-supervision-copy>Connect keeps supervision active while this window remains open.</small></span>
             </div>
-            <a href="#portal-models" data-manage-models>View in portal</a>
-          </header>
-
-          <ul class="ledger-list model-list" data-model-list>
-            <li>
-              <span><strong>Luxembourg Chat</strong><small>General work · <span class="mono">llama-3.3-70b</span></small></span>
-              <span class="row-state row-state--ready"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg>Available</span>
-            </li>
-            <li>
-              <span><strong>Document Reasoning</strong><small>Long documents · <span class="mono">mistral-large</span></small></span>
-              <span class="row-state row-state--ready"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg>Available</span>
-            </li>
-          </ul>
-
-          <div class="empty-ledger" data-model-empty hidden>
-            <span class="empty-ledger__mark" aria-hidden="true">—</span>
-            <div><strong>No company models available</strong><p>Your connection is working, but your company hasn’t assigned model access to you. Contact your company owner.</p></div>
-          </div>
-        </section>
-
-        <section class="ledger-section" aria-labelledby="apps-heading">
-          <header class="ledger-heading">
-            <div>
-              <p class="section-label">This computer</p>
-              <h2 id="apps-heading">Applications</h2>
+            <div class="session-plane__actions">
+              <button class="button button--secondary-dark" type="button" data-hide-tray>Hide window</button>
+              <button class="button button--danger-dark" type="button" data-disconnect>Disconnect</button>
             </div>
-          </header>
-
-          <ul class="ledger-list app-list" data-app-list>
-            <li data-app-row="jan">
-              <span class="tool-monogram" aria-hidden="true">J</span>
-              <span><strong>Jan</strong><small data-app-detail="jan">Connected to 2 models</small></span>
-              <button type="button" class="row-action" data-app-action="jan">Open</button>
-            </li>
-            <li data-app-row="goose">
-              <span class="tool-monogram tool-monogram--goose" aria-hidden="true">G</span>
-              <span><strong>Goose</strong><small data-app-detail="goose">Connected to 2 models</small></span>
-              <button type="button" class="row-action" data-app-action="goose">Open</button>
-            </li>
-          </ul>
+          </section>
         </section>
 
-        <section class="update-ledger" data-update-panel role="status" aria-live="polite" aria-atomic="true" aria-labelledby="update-heading" hidden>
-          <span class="update-ledger__mark" aria-hidden="true">↑</span>
-          <div class="update-ledger__copy">
-            <h2 id="update-heading" data-update-title>Connect update available</h2>
-            <p data-update-message>Integrity-checked, unsigned internal demo. Connect will close, install, and reopen.</p>
-          </div>
-          <button class="row-action" type="button" data-install-update>Install demo update</button>
+        <section class="screen screen--workspace" data-screen="recovery" aria-labelledby="recovery-title" hidden>
+          <section class="attention-strip" role="status">
+            <span aria-hidden="true">!</span>
+            <div><strong>Local application cleanup needs attention.</strong><small>The private listener is closed; Connect will not overwrite a newer application file.</small></div>
+          </section>
+          <section class="recovery-region">
+            <p class="quiet-label">LOCAL RECOVERY</p>
+            <h1 id="recovery-title" tabindex="-1">Review the application profile</h1>
+            <p data-recovery-message>Connect could not confirm every local cleanup step.</p>
+            <dl class="recovery-ledger">
+              <div><dt>Local connection</dt><dd data-recovery-local></dd></div>
+              <div><dt>Remote grant</dt><dd data-recovery-grant></dd></div>
+              <div><dt>Profile</dt><dd data-recovery-profile></dd></div>
+            </dl>
+            <aside class="recovery-note"><strong>No remote credential is exposed.</strong><p>The application only received a local capability that is no longer accepted.</p></aside>
+          </section>
+          <section class="recovery-actions">
+            <button class="button button--secondary" type="button" data-back-launcher>Return to applications</button>
+            <button class="button button--primary" type="button" data-open-help>Open recovery guide</button>
+          </section>
         </section>
 
-        <p class="quiet-runtime-note" data-runtime-note>Connect starts when you sign in and stays ready in the background.</p>
-      </div>
+        <dialog class="session-dialog" data-session-dialog aria-labelledby="session-dialog-title">
+          <form method="dialog">
+            <p class="quiet-label">ACTIVE CONNECTION</p>
+            <h2 id="session-dialog-title">Disconnect and sign out?</h2>
+            <p>Connect will close the private connection, attempt grant revocation, restore the application profile, and then remove this device sign-in.</p>
+            <footer>
+              <button class="button button--secondary" value="cancel">Keep working</button>
+              <button class="button button--primary" value="confirm" data-confirm-sign-out>Disconnect and sign out</button>
+            </footer>
+          </form>
+        </dialog>
 
-      <footer class="status-footer">
-        <button class="footer-link" type="button" data-manage-portal>Manage in portal</button>
-        <span aria-hidden="true">·</span>
-        <button class="footer-link" type="button" data-check-update>Updates</button>
-        <span aria-hidden="true">·</span>
-        <button class="footer-link" type="button" data-open-help>Help</button>
-        <span class="status-footer__version" data-app-version>v0.2.0-demo.1</span>
-      </footer>
-    </section>
-  </main>
+        <dialog class="diagnostics-dialog" data-diagnostics-dialog aria-labelledby="diagnostics-title">
+          <form method="dialog">
+            <header><div><p class="quiet-label">SUPPORT-SAFE DETAILS</p><h2 id="diagnostics-title">Diagnostics and updates</h2></div><button class="icon-button" value="cancel" aria-label="Close diagnostics">×</button></header>
+            <dl class="recovery-ledger">
+              <div><dt>Connect</dt><dd data-version-label></dd></div>
+              <div><dt>Connection</dt><dd data-diagnostic-connection></dd></div>
+              <div><dt>Workspace</dt><dd data-diagnostic-workspace></dd></div>
+              <div><dt>Applications</dt><dd data-diagnostic-apps></dd></div>
+            </dl>
+            <section class="update-panel" data-update-panel aria-live="polite">
+              <strong data-update-title>Updates</strong>
+              <p data-update-message>Check the internal release channel when you are ready.</p>
+              <div>
+                <button class="button button--secondary" type="button" data-check-update>Check for updates</button>
+                <button class="button button--primary" type="button" data-install-update hidden>Download update</button>
+              </div>
+            </section>
+          </form>
+        </dialog>
 
-  <dialog id="confirmation-dialog" class="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
-    <form method="dialog">
-      <div class="dialog__mark" aria-hidden="true">!</div>
-      <h2 id="dialog-title">Sign out on this device?</h2>
-      <p id="dialog-description">Jan and Goose will disconnect from your company models. This won’t change access managed by your company.</p>
-      <div class="dialog__actions">
-        <button class="button button--quiet" value="cancel">Cancel</button>
-        <button class="button button--danger" value="confirm" data-dialog-confirm>Sign out</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <div class="sr-only" aria-live="polite" aria-atomic="true" data-state-announcer></div>
-
-  <script src="app.js" type="module"></script>
-  <script src="bootstrap.js" type="module"></script>
-</body>
+        <div class="app-toast" data-toast hidden role="status" aria-live="polite"></div>
+        <p class="sr-only" data-live-region aria-live="polite"></p>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="bootstrap.js"></script>
+  </body>
 </html>

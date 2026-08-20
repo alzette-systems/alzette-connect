@@ -60,9 +60,13 @@ func run(arguments []string) error {
 	if err := runtime.Connect(ctx, *contextID); err != nil {
 		return fmt.Errorf("%s: %w", state.Current().Message, err)
 	}
+	if err := runtime.StartLaunch(ctx); err != nil {
+		return fmt.Errorf("create application session: %w", err)
+	}
 	defer func() {
 		shutdown, stop := context.WithTimeout(context.Background(), 5*time.Second)
 		defer stop()
+		_ = runtime.StopLaunch(shutdown)
 		_ = runtime.Stop(shutdown)
 	}()
 	baseURL, capability, _, ok := runtime.ClientConnection()

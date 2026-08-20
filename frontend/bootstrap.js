@@ -6,6 +6,6 @@ const nativeHost = window.location.protocol === "wails:"
 if (nativeHost) {
   import("./native.js").catch(() => {
     window.AlzetteConnect?.setNativeMode(true);
-    window.AlzetteConnect?.applyState({ state: "setup-attention", native: true });
+    window.AlzetteConnect?.applyState({ phase: "failed", error_code: "service_unavailable", message: "The native connection is unavailable" });
   });
 }

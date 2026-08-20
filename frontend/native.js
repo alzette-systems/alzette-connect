@@ -1,26 +1,26 @@
 import { Events } from "@wailsio/runtime";
 import {
   BeginSignIn,
+  CancelLaunch,
   CancelSignIn,
   CheckForUpdates,
-  ConfigureApps,
   CurrentState,
-  OpenApp,
+  Disconnect,
+  HideToTray,
+  LaunchApplication,
   OpenPortal,
   Quit,
+  SelectContext,
   SignOut,
   InstallUpdate,
   SetWindowMode,
 } from "./bindings/github.com/ticruz38/alzette-connect/desktopservice.js";
 
-function present(snapshot, chooseView = false) {
+function present(snapshot) {
   const mapped = window.AlzetteConnect?.mapRuntimeSnapshot(snapshot);
   if (!mapped) return;
   window.AlzetteConnect.setNativeMode(true);
   window.AlzetteConnect.applyState(mapped);
-  if (chooseView) {
-    window.AlzetteConnect.showView(mapped.state === "signed-out" ? "onboarding" : "status", false);
-  }
 }
 
 function runAction(detail) {
@@ -35,6 +35,8 @@ function runAction(detail) {
       interactiveSignIn = false;
       CancelSignIn();
       return Promise.resolve();
+    case "select-context":
+      return SelectContext(target);
     case "window-mode":
       return SetWindowMode(target);
     case "open-portal":
@@ -44,16 +46,16 @@ function runAction(detail) {
     case "quit":
       Quit();
       return Promise.resolve();
-    case "configure-apps":
-      return ConfigureApps(target);
-    case "finish-onboarding":
+    case "launch-application":
+      return LaunchApplication(target);
+    case "cancel-launch":
+      CancelLaunch();
       return Promise.resolve();
-    case "open-app":
-      return OpenApp(target);
-    case "repair-app":
-      return ConfigureApps(target);
-    case "open-help":
-      return Promise.reject(new Error("This action is not available in this build yet."));
+    case "disconnect":
+      return Disconnect();
+    case "hide-to-tray":
+      HideToTray();
+      return Promise.resolve();
     case "check-update":
       return CheckForUpdates();
     case "install-update":
@@ -71,17 +73,15 @@ window.addEventListener("alzette:action", (event) => {
 });
 
 Events.On("connect:state", (event) => {
-  const mapped = window.AlzetteConnect?.mapRuntimeSnapshot(event.data);
-  const chooseView = !interactiveSignIn && mapped?.state !== "signed-out";
-  present(event.data, chooseView);
+  present(event.data);
 });
 
 async function initialiseNativeBridge() {
   window.AlzetteConnect?.setNativeMode(true);
   try {
-    present(await CurrentState(), true);
+    present(await CurrentState());
   } catch {
-    window.AlzetteConnect?.applyState({ state: "setup-attention", native: true });
+    window.AlzetteConnect?.applyState({ phase: "failed", error_code: "service_unavailable", message: "Alzette Connect is still starting" });
   }
 }
 

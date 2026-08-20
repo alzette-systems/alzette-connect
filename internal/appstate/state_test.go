@@ -3,11 +3,13 @@ package appstate
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/ticruz38/alzette-connect/internal/credentialstore"
+	"github.com/ticruz38/alzette-connect/internal/session"
 )
 
 func TestSnapshotIsCopiedAndContainsNoCredentialField(t *testing.T) {
@@ -32,6 +34,19 @@ func TestSnapshotIsCopiedAndContainsNoCredentialField(t *testing.T) {
 		if strings.Contains(string(encoded), forbidden) {
 			t.Fatalf("UI state exposed %q: %s", forbidden, encoded)
 		}
+	}
+}
+
+func TestInferenceSessionCannotStartBeforeEmployeeSignIn(t *testing.T) {
+	runtime, err := NewRuntime(RuntimeConfig{ControlURL: "https://control.example", CredentialStore: credentialstore.NewMemory()}, New(time.Now()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := runtime.StartLaunch(context.Background()); !errors.Is(err, session.ErrSignInRequired) {
+		t.Fatalf("StartLaunch error=%v", err)
+	}
+	if baseURL, capability, models, ok := runtime.ClientConnection(); ok || baseURL != "" || capability != "" || len(models) != 0 {
+		t.Fatalf("unsigned-in runtime exposed a client connection: %q %q %v %t", baseURL, capability, models, ok)
 	}
 }
 
