@@ -15,7 +15,9 @@ required=(
   packaging/windows/README.md
   packaging/windows/installer.nsi
   scripts/package-download.sh
+  scripts/package-macos-release.sh
   .github/workflows/desktop-downloads.yml
+  .github/workflows/macos-release.yml
   docs/BUILDING.md
   docs/RELEASING.md
   docs/SUPPORTED_PLATFORMS.md
@@ -29,19 +31,22 @@ for path in "${required[@]}"; do
   fi
 done
 
-for packaging_source in scripts/package-current.sh scripts/package-download.sh packaging/windows/installer.nsi; do
+for packaging_source in scripts/package-current.sh scripts/package-download.sh scripts/package-macos-release.sh packaging/windows/installer.nsi; do
   if ! grep -Fq 'THIRD_PARTY_NOTICES' "$packaging_source"; then
     echo "third-party notices are not included by: $packaging_source" >&2
     exit 1
   fi
 done
 
-if [[ ! -x scripts/package-download.sh ]]; then
-  echo "download packaging script is not executable" >&2
-  exit 1
-fi
+for executable in scripts/package-download.sh scripts/package-macos-release.sh; do
+  if [[ ! -x "$executable" ]]; then
+    echo "packaging script is not executable: $executable" >&2
+    exit 1
+  fi
+done
 
 bash -n scripts/package-download.sh
+bash -n scripts/package-macos-release.sh
 
 desktop="packaging/linux/systems.alzette.Connect.desktop"
 for entry in \

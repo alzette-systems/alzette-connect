@@ -10,7 +10,7 @@ on:
         type: string
   push:
     tags:
-      - 'connect-v*'
+      - 'connect-v*-demo.*'
 
 permissions:
   contents: read

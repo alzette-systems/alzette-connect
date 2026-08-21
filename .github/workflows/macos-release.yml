@@ -1,0 +1,208 @@
+name: Signed macOS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable release version (for example 0.3.0)
+        required: true
+        default: 0.3.0
+        type: string
+  push:
+    tags:
+      - 'connect-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-macos-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Validate stable release version
+    runs-on: ubuntu-24.04
+    outputs:
+      eligible: ${{ steps.version.outputs.eligible }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$INPUT_VERSION"
+          else
+            version="${GITHUB_REF_NAME#connect-v}"
+          fi
+          if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            printf '%s\n' "eligible=true" "version=$version" >> "$GITHUB_OUTPUT"
+          else
+            printf '%s\n' "eligible=false" "version=$version" >> "$GITHUB_OUTPUT"
+            printf 'Skipping signed release for non-stable version %s.\n' "$version"
+          fi
+
+  package:
+    name: macOS ${{ matrix.arch }} signed and notarized
+    if: needs.prepare.outputs.eligible == 'true'
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    environment: macos-release
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      ALZETTE_CONNECT_VERSION: ${{ needs.prepare.outputs.version }}
+      MACOS_SIGNING_IDENTITY: 'Developer ID Application: Thibaut Duchene (4P9DXSMKF2)'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install pinned Wails CLI
+        run: scripts/install-wails.sh
+
+      - name: Verify source and tests
+        run: scripts/verify.sh
+
+      - name: Build application
+        run: scripts/build-smoke.sh
+
+      - name: Import Developer ID identity
+        env:
+          CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          : "${CERTIFICATE_P12_BASE64:?missing MACOS_CERTIFICATE_P12_BASE64}"
+          : "${CERTIFICATE_PASSWORD:?missing MACOS_CERTIFICATE_PASSWORD}"
+          certificate_path="$RUNNER_TEMP/alzette-connect-developer-id.p12"
+          keychain_path="$RUNNER_TEMP/alzette-connect-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          printf '%s' "$CERTIFICATE_P12_BASE64" | base64 -D > "$certificate_path"
+          chmod 600 "$certificate_path"
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" \
+            -k "$keychain_path" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$keychain_password" \
+            "$keychain_path"
+          security list-keychains -d user -s "$keychain_path"
+          security default-keychain -d user -s "$keychain_path"
+          security find-identity -v -p codesigning "$keychain_path" \
+            | grep -F "$MACOS_SIGNING_IDENTITY"
+          printf '%s\n' "SIGNING_KEYCHAIN_PATH=$keychain_path" >> "$GITHUB_ENV"
+
+      - name: Prepare notarization key
+        env:
+          API_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          : "${API_KEY_P8_BASE64:?missing APP_STORE_CONNECT_API_KEY_P8_BASE64}"
+          : "${API_KEY_ID:?missing APP_STORE_CONNECT_KEY_ID}"
+          : "${API_ISSUER_ID:?missing APP_STORE_CONNECT_ISSUER_ID}"
+          [[ "$TEAM_ID" == "4P9DXSMKF2" ]]
+          api_key_path="$RUNNER_TEMP/AuthKey_${API_KEY_ID}.p8"
+          printf '%s' "$API_KEY_P8_BASE64" | base64 -D > "$api_key_path"
+          chmod 600 "$api_key_path"
+          openssl pkey -in "$api_key_path" -check -noout
+          printf '%s\n' \
+            "APP_STORE_CONNECT_API_KEY_PATH=$api_key_path" \
+            "APP_STORE_CONNECT_KEY_ID=$API_KEY_ID" \
+            "APP_STORE_CONNECT_ISSUER_ID=$API_ISSUER_ID" \
+            >> "$GITHUB_ENV"
+
+      - name: Sign, notarize, staple, and package
+        run: scripts/package-macos-release.sh --from-build
+
+      - name: Upload signed release package
+        uses: actions/upload-artifact@v7
+        with:
+          name: alzette-connect-macos-${{ matrix.arch }}-signed-notarized
+          path: |
+            dist/Alzette-Connect-*.zip
+            dist/Alzette-Connect-*.zip.sha256
+            dist/Alzette-Connect-*.notarization.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attest release package provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: dist/Alzette-Connect-*.zip
+
+      - name: Remove temporary signing credentials
+        if: always()
+        run: |
+          if [[ -n "${SIGNING_KEYCHAIN_PATH:-}" && -f "$SIGNING_KEYCHAIN_PATH" ]]; then
+            security delete-keychain "$SIGNING_KEYCHAIN_PATH" || true
+          fi
+          rm -f \
+            "$RUNNER_TEMP/alzette-connect-developer-id.p12" \
+            "$RUNNER_TEMP"/AuthKey_*.p8
+
+  release:
+    name: Publish signed macOS release
+    if: needs.prepare.outputs.eligible == 'true' && startsWith(github.ref, 'refs/tags/')
+    needs: [prepare, package]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download signed packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: alzette-connect-macos-*-signed-notarized
+          path: dist
+          merge-multiple: true
+
+      - name: Publish immutable signed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists; refusing to replace immutable assets" >&2
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Alzette Connect $RELEASE_VERSION" \
+            --notes "Developer ID signed, Apple-notarized, and stapled macOS packages for Apple Silicon and Intel. Verify the accompanying SHA-256 files before installation."
