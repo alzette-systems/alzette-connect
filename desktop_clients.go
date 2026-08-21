@@ -90,9 +90,7 @@ func discoverDesktopClients(home string) *desktopClients {
 		}
 		chatGPTCandidates = []string{
 			"/Applications/ChatGPT.app/Contents/MacOS/ChatGPT",
-			"/Applications/Codex.app/Contents/MacOS/Codex",
 			filepath.Join(home, "Applications", "ChatGPT.app", "Contents", "MacOS", "ChatGPT"),
-			filepath.Join(home, "Applications", "Codex.app", "Contents", "MacOS", "Codex"),
 		}
 	case "windows":
 		local := os.Getenv("LOCALAPPDATA")
