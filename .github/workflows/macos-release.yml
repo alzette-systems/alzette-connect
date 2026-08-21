@@ -68,6 +68,9 @@ jobs:
         shell: bash
     env:
       ALZETTE_CONNECT_VERSION: ${{ needs.prepare.outputs.version }}
+      # The 0.3 stable macOS channel is the signed ChatGPT acceptance build.
+      # The adapter remains "Verify at launch" until named native evidence is recorded.
+      ALZETTE_CONNECT_CHATGPT_CANDIDATE: 'true'
       MACOS_SIGNING_IDENTITY: 'Developer ID Application: Thibaut Duchene (4P9DXSMKF2)'
     steps:
       - name: Check out source

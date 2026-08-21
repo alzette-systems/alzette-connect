@@ -48,6 +48,11 @@ done
 bash -n scripts/package-download.sh
 bash -n scripts/package-macos-release.sh
 
+if ! grep -Fq "ALZETTE_CONNECT_CHATGPT_CANDIDATE: 'true'" .github/workflows/macos-release.yml; then
+  echo "signed macOS acceptance releases must enable the ChatGPT adapter" >&2
+  exit 1
+fi
+
 desktop="packaging/linux/systems.alzette.Connect.desktop"
 for entry in \
   'Type=Application' \
