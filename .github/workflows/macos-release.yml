@@ -163,7 +163,7 @@ jobs:
           retention-days: 30
 
       - name: Attest release package provenance
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/Alzette-Connect-*.zip
 
