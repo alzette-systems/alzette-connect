@@ -22,8 +22,10 @@ const (
 	chatGPTContextWindow = 16_384
 )
 
-// ConfigureChatGPT adapts Ollama's reversible Codex App provider pattern to
-// Alzette. The config contains only the loopback URL and the name of an
+// ConfigureChatGPT adapts Ollama's reversible ChatGPT/Codex workspace provider
+// pattern to Alzette. The unified ChatGPT app currently exposes this workspace
+// through the com.openai.codex bundle and the documented user-level Codex
+// configuration. The config contains only the loopback URL and the name of an
 // ephemeral environment variable; the capability itself is injected only
 // into the supervised child process.
 func (m *Manager) ConfigureChatGPT(ctx context.Context, request ChatGPTRequest) (*Result, error) {
@@ -205,7 +207,7 @@ func ObserveChatGPTVersion(ctx context.Context, executable string) (string, erro
 		identity.Env = launchEnvironment(os.Environ())
 		bundleID, identityErr := identity.Output()
 		if identityErr != nil || strings.TrimSpace(string(bundleID)) != "com.openai.codex" {
-			return "", fmt.Errorf("%w: the selected macOS application is not ChatGPT", ErrUnsupported)
+			return "", fmt.Errorf("%w: the selected macOS application does not expose ChatGPT's Codex workspace", ErrUnsupported)
 		}
 		command = exec.CommandContext(check, "/usr/bin/plutil", "-extract", "CFBundleShortVersionString", "raw", "-o", "-", infoPath)
 	case "windows":

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,18 +14,43 @@ import (
 	"time"
 )
 
+func init() {
+	if len(os.Args) != 2 || os.Args[1] != "--version" {
+		return
+	}
+	name := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+	version, ok := strings.CutPrefix(name, "pi-test-")
+	if !ok {
+		return
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "pi %s\n", version)
+	os.Exit(0)
+}
+
 func TestQualifyPiRequiresTheNamedRelease(t *testing.T) {
-	root := canonicalTempRoot(t)
-	pi := filepath.Join(root, "pi")
-	mustWrite(t, pi, []byte("#!/bin/sh\nprintf 'pi 0.84.2\\n'\n"), 0o700)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	testBinary, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents, err := os.ReadFile(testBinary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	extension := ""
+	if runtime.GOOS == "windows" {
+		extension = ".exe"
+	}
+	pi := filepath.Join(canonicalTempRoot(t), "pi-test-"+PiSupportedVersion+extension)
+	mustWrite(t, pi, contents, 0o700)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	version, err := QualifyPi(ctx, pi)
 	if err != nil || version != PiSupportedVersion {
 		t.Fatalf("version=%q err=%v", version, err)
 	}
-	mustWrite(t, pi, []byte("#!/bin/sh\nprintf 'pi 0.85.0\\n'\n"), 0o700)
-	if _, err := QualifyPi(ctx, pi); !errors.Is(err, ErrWrongVersion) {
+	wrong := filepath.Join(filepath.Dir(pi), "pi-test-0.85.0"+extension)
+	mustWrite(t, wrong, contents, 0o700)
+	if _, err := QualifyPi(ctx, wrong); !errors.Is(err, ErrWrongVersion) {
 		t.Fatalf("wrong version error=%v", err)
 	}
 }

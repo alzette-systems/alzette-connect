@@ -45,7 +45,7 @@ func (c *desktopClients) applicationStates() []appstate.Application {
 		{ID: "goose", Name: "Goose Desktop", Status: gooseStatus, DeliveryMode: "catalogue", Installed: c.gooseExecutable != "", Detail: "Version 1.46.0"},
 	}
 	chatGPTStatus := status(c.chatGPTExecutable)
-	chatGPTDetail := "Version observed and temporary Responses profile prepared at launch"
+	chatGPTDetail := "Codex workspace · temporary Alzette Responses profile prepared at launch"
 	if !chatGPTCandidateIsEnabled() {
 		chatGPTStatus = "not_supported"
 		chatGPTDetail = "Internal adapter candidate is disabled in this build"
@@ -54,7 +54,7 @@ func (c *desktopClients) applicationStates() []appstate.Application {
 		chatGPTDetail = "Windows Store application integration is not yet available"
 	} else if runtime.GOOS == "linux" {
 		chatGPTStatus = "protocol_unavailable"
-		chatGPTDetail = "ChatGPT is macOS-only in the current candidate"
+		chatGPTDetail = "ChatGPT's Codex workspace is macOS-only in the current candidate"
 	}
 	values = append(values, appstate.Application{ID: "chatgpt", Name: "ChatGPT", Status: chatGPTStatus, DeliveryMode: "primary_plus_catalogue", Installed: c.chatGPTExecutable != "", Detail: chatGPTDetail})
 	return values

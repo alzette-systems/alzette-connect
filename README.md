@@ -7,7 +7,7 @@ The repository is intentionally separate from the Alzette server. The desktop sh
 ## Employee demo flow
 
 1. Install the current internal macOS demo package from the controlled release channel.
-2. Install Pi 0.84.2, Jan 0.8.4, Goose 1.46.0, or—on the internal macOS candidate build—ChatGPT Desktop. Open configuration-based apps once, then close them so Connect can inspect and update their local profiles safely.
+2. Install Pi 0.84.2, Jan 0.8.4, Goose 1.46.0, or—on the internal macOS candidate build—the ChatGPT app with its Codex workspace. Open configuration-based apps once, then close them so Connect can inspect and update their local profiles safely.
 3. Open Alzette Connect and choose **Sign in with Alzette**.
 4. Complete browser sign-in with the invited company identity. If more than one workspace is available, choose the safe company/project label in Connect.
 5. Review the synchronized company model aliases and the truthful status beside each detected application.
