@@ -1,8 +1,10 @@
 //go:build darwin && cgo
 
-// Package mackeychain provides the narrow Data Protection Keychain operations
-// used by Alzette Connect. It deliberately does not expose access groups,
-// synchronisation, authentication prompts, or arbitrary query attributes.
+// Package mackeychain provides the narrow native Keychain operations used by
+// Alzette Connect. Directly distributed Developer ID builds use the per-user
+// login Keychain, which is encrypted and does not synchronize through iCloud.
+// The package deliberately does not expose access groups, synchronisation,
+// authentication prompts, or arbitrary query attributes.
 package mackeychain
 
 /*
@@ -33,7 +35,6 @@ static CFMutableDictionaryRef alz_query(const char *service, const char *account
 		CFDictionarySetValue(query, kSecClass, kSecClassGenericPassword);
 		CFDictionarySetValue(query, kSecAttrService, serviceValue);
 		CFDictionarySetValue(query, kSecAttrAccount, accountValue);
-		CFDictionarySetValue(query, kSecUseDataProtectionKeychain, kCFBooleanTrue);
 	}
 	CFRelease(serviceValue);
 	CFRelease(accountValue);
@@ -56,9 +57,6 @@ static OSStatus alz_keychain_add(
 	}
 	CFDictionarySetValue(query, kSecValueData, data);
 	CFDictionarySetValue(query, kSecAttrLabel, label);
-	CFDictionarySetValue(query, kSecAttrAccessible,
-		kSecAttrAccessibleWhenUnlockedThisDeviceOnly);
-
 	OSStatus status = SecItemAdd(query, NULL);
 	CFRelease(label);
 	CFRelease(data);

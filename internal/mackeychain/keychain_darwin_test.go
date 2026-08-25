@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestDataProtectionKeychainLifecycle(t *testing.T) {
+func TestNativeKeychainLifecycle(t *testing.T) {
 	service := "systems.alzette.Connect.test"
 	account := fmt.Sprintf("test-%d-%d", os.Getpid(), time.Now().UnixNano())
 	t.Cleanup(func() {
