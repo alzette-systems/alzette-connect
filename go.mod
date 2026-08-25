@@ -7,7 +7,7 @@ require (
 	github.com/gofrs/flock v0.13.0
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/wailsapp/wails/v3 v3.0.0-alpha2.114
-	golang.org/x/sys v0.43.0
+	golang.org/x/sys v0.47.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
