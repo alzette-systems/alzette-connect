@@ -5,7 +5,7 @@
 The Alzette Connect ChatGPT adapter adapts the reversible provider-profile,
 model-catalogue, application discovery, and launch sequencing used by Ollama's
 `cmd/launch/codex_app.go` and `cmd/launch/codex.go`, reviewed at commit
-`b7871fc0d1d82fe109536efa3e0e8e411c766c75`.
+`f6c59d87038ae77f52d4adfbdc37363f8edd1ef3`.
 
 Ollama is Copyright (c) Ollama and licensed under the MIT License:
 

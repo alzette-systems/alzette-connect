@@ -19,30 +19,32 @@ import (
 // webview. It returns presentation state only; credentials and loopback
 // capabilities stay inside the Go runtime.
 type desktopService struct {
-	app            *application.App
-	state          *appstate.Model
-	runtime        *appstate.Runtime
-	membershipID   string
-	portalOrigin   string
-	clients        *desktopClients
-	clientConfig   *clientconfig.Manager
-	actionMu       sync.Mutex
-	applicationMu  sync.RWMutex
-	applications   []appstate.Application
-	launchMu       sync.Mutex
-	launch         appstate.Launch
-	activeProcess  *clientconfig.Process
-	activeRollback func(context.Context) error
-	launchCancelMu sync.Mutex
-	launchCancel   context.CancelFunc
-	updateActionMu sync.Mutex
-	updateMu       sync.RWMutex
-	update         appstate.Update
-	updater        *updater.Client
-	updateRelease  updater.Release
-	signInMu       sync.Mutex
-	signInCancel   context.CancelFunc
-	window         *application.WebviewWindow
+	app             *application.App
+	state           *appstate.Model
+	runtime         *appstate.Runtime
+	membershipID    string
+	portalOrigin    string
+	clients         *desktopClients
+	clientConfig    *clientconfig.Manager
+	actionMu        sync.Mutex
+	applicationMu   sync.RWMutex
+	applications    []appstate.Application
+	launchMu        sync.Mutex
+	launch          appstate.Launch
+	activeProcess   *clientconfig.Process
+	activeRollback  func(context.Context) error
+	pendingRollback func(context.Context) error
+	pendingRemote   bool
+	launchCancelMu  sync.Mutex
+	launchCancel    context.CancelFunc
+	updateActionMu  sync.Mutex
+	updateMu        sync.RWMutex
+	update          appstate.Update
+	updater         *updater.Client
+	updateRelease   updater.Release
+	signInMu        sync.Mutex
+	signInCancel    context.CancelFunc
+	window          *application.WebviewWindow
 }
 
 func (s *desktopService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -109,6 +111,20 @@ func (s *desktopService) setLaunch(next appstate.Launch) {
 	if s.app != nil && s.state != nil {
 		s.app.Event.Emit("connect:state", s.presentationState(s.state.Current()))
 	}
+}
+
+func (s *desktopService) rememberPendingCleanup(rollback func(context.Context) error, retryRemote bool) {
+	s.launchMu.Lock()
+	s.pendingRollback = rollback
+	s.pendingRemote = retryRemote
+	s.launchMu.Unlock()
+}
+
+func (s *desktopService) clearPendingCleanup() {
+	s.launchMu.Lock()
+	s.pendingRollback = nil
+	s.pendingRemote = false
+	s.launchMu.Unlock()
 }
 
 func (s *desktopService) setUpdate(next appstate.Update) {
@@ -452,8 +468,14 @@ func (s *desktopService) LaunchApplication(id string) error {
 			if remoteErr != nil {
 				grantStatus = "unconfirmed"
 			}
+			var retryRollback func(context.Context) error
+			if restoreErr != nil {
+				retryRollback = rollback
+			}
+			s.rememberPendingCleanup(retryRollback, remoteErr != nil)
 			s.setLaunch(appstate.Launch{Phase: "recovery", ApplicationID: id, Application: application.Name, Message: message, CleanupPending: true, LocalClosed: true, GrantStatus: grantStatus, ProfileStatus: profileStatus})
 		} else {
+			s.clearPendingCleanup()
 			s.setLaunch(appstate.Launch{Phase: "idle"})
 		}
 		return friendlyClientError(application.Name, err)
@@ -512,9 +534,15 @@ func (s *desktopService) observeApplication(process *clientconfig.Process) {
 		if remoteErr != nil {
 			grantStatus = "unconfirmed"
 		}
+		var retryRollback func(context.Context) error
+		if restoreErr != nil {
+			retryRollback = rollback
+		}
+		s.rememberPendingCleanup(retryRollback, remoteErr != nil)
 		s.setLaunch(appstate.Launch{Phase: "recovery", Message: message, CleanupPending: true, LocalClosed: true, GrantStatus: grantStatus, ProfileStatus: profileStatus})
 		return
 	}
+	s.clearPendingCleanup()
 	s.setLaunch(appstate.Launch{Phase: "idle"})
 }
 
@@ -555,15 +583,80 @@ func (s *desktopService) disconnectLocked(ctx context.Context) error {
 		if remoteErr != nil {
 			grantStatus = "unconfirmed"
 		}
+		s.rememberPendingCleanup(rollback, remoteErr != nil)
 		s.setLaunch(appstate.Launch{Phase: "recovery", Message: "The connection is closed, but the application profile changed and needs review", CleanupPending: true, LocalClosed: true, GrantStatus: grantStatus, ProfileStatus: "needs_review"})
 		return restoreErr
 	}
 	if remoteErr != nil {
+		s.rememberPendingCleanup(nil, true)
 		s.setLaunch(appstate.Launch{Phase: "recovery", Message: "The local connection is closed and the profile is restored, but remote grant revocation could not be confirmed", CleanupPending: true, LocalClosed: true, GrantStatus: "unconfirmed", ProfileStatus: "restored"})
 		return remoteErr
 	}
+	s.clearPendingCleanup()
 	s.setLaunch(appstate.Launch{Phase: "idle"})
 	return nil
+}
+
+// RetryCleanup repeats only the cleanup work that was not confirmed. It never
+// reopens the listener or mints new inference authority.
+func (s *desktopService) RetryCleanup() error {
+	if s == nil || s.runtime == nil {
+		return errors.New("Alzette Connect is still starting")
+	}
+	s.actionMu.Lock()
+	defer s.actionMu.Unlock()
+	s.launchMu.Lock()
+	rollback := s.pendingRollback
+	retryRemote := s.pendingRemote
+	current := s.launch
+	s.launchMu.Unlock()
+	if !current.CleanupPending {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+	defer cancel()
+	var remoteErr, restoreErr error
+	if retryRemote {
+		remoteErr = s.runtime.StopLaunch(ctx)
+	}
+	if rollback != nil {
+		restoreErr = rollback(ctx)
+	}
+	if remoteErr == nil && restoreErr == nil {
+		s.clearPendingCleanup()
+		s.setLaunch(appstate.Launch{Phase: "idle"})
+		return nil
+	}
+
+	s.launchMu.Lock()
+	if restoreErr == nil {
+		s.pendingRollback = nil
+	}
+	if remoteErr == nil {
+		s.pendingRemote = false
+	}
+	s.launchMu.Unlock()
+	applicationName := current.Application
+	if applicationName == "" {
+		applicationName = "The application"
+	}
+	message := "The private connection is closed, but " + applicationName + "'s local profile still needs attention"
+	profileStatus := "needs_review"
+	if restoreErr == nil {
+		message = "The application profile is restored, but remote revocation could not be confirmed"
+		profileStatus = "restored"
+	}
+	grantStatus := "confirmed"
+	if remoteErr != nil {
+		grantStatus = "unconfirmed"
+	}
+	s.setLaunch(appstate.Launch{
+		Phase: "recovery", ApplicationID: current.ApplicationID, Application: current.Application,
+		Message: message, CleanupPending: true, LocalClosed: true,
+		GrantStatus: grantStatus, ProfileStatus: profileStatus,
+	})
+	return errors.New("Cleanup still needs attention; your private connection remains closed")
 }
 
 func (s *desktopService) HideToTray() {

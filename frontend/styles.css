@@ -253,6 +253,7 @@ input:focus-visible {
 .button--wide { width: 100%; }
 .button--primary { background: var(--night); color: white; }
 .button--primary:hover { background: #1a2329; }
+.button:disabled { cursor: wait; opacity: .62; }
 .button--secondary { border-color: var(--line); background: transparent; color: var(--ink); }
 .button--secondary:hover { background: var(--paper-deep); }
 .button--green { min-width: 112px; background: var(--green-deep); color: white; }

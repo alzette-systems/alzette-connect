@@ -10,6 +10,7 @@ import {
   LaunchApplication,
   OpenPortal,
   Quit,
+  RetryCleanup,
   SelectContext,
   SignOut,
   InstallUpdate,
@@ -53,6 +54,8 @@ function runAction(detail) {
       return Promise.resolve();
     case "disconnect":
       return Disconnect();
+    case "retry-cleanup":
+      return RetryCleanup();
     case "hide-to-tray":
       HideToTray();
       return Promise.resolve();

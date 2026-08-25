@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -40,6 +41,30 @@ func TestPresentationStateUsesSelectedContextAndContainsNoConnectionSecret(t *te
 		if strings.Contains(string(encoded), forbidden) {
 			t.Fatalf("presentation leaked %q: %s", forbidden, encoded)
 		}
+	}
+}
+
+func TestRetryCleanupRunsOnlyPendingProfileRestore(t *testing.T) {
+	calls := 0
+	service := &desktopService{
+		runtime: &appstate.Runtime{},
+		launch: appstate.Launch{
+			Phase: "recovery", ApplicationID: "chatgpt", Application: "ChatGPT",
+			CleanupPending: true, LocalClosed: true, GrantStatus: "confirmed", ProfileStatus: "needs_review",
+		},
+		pendingRollback: func(context.Context) error {
+			calls++
+			return nil
+		},
+	}
+	if err := service.RetryCleanup(); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("profile cleanup calls=%d, want 1", calls)
+	}
+	if service.launch.Phase != "idle" || service.launch.CleanupPending || service.pendingRollback != nil || service.pendingRemote {
+		t.Fatalf("cleanup did not return to idle: launch=%+v", service.launch)
 	}
 }
 

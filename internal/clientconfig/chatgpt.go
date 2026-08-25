@@ -15,12 +15,26 @@ import (
 
 const (
 	chatGPTCatalogFilename = "alzette-connect-models.json"
+	chatGPTRestoreFilename = "chatgpt-restore.json"
 	chatGPTCapabilityEnv   = "ALZETTE_CONNECT_SESSION_KEY"
 	// The current context API returns aliases, not route capability metadata.
 	// Use a conservative adapter ceiling and make no per-model capability
 	// claim until that metadata has an evidenced server contract.
 	chatGPTContextWindow = 16_384
 )
+
+type chatGPTRestoreValue struct {
+	Present bool   `json:"present"`
+	Value   string `json:"value,omitempty"`
+}
+
+type chatGPTRestoreState struct {
+	ConfigExisted    bool                `json:"config_existed"`
+	Profile          chatGPTRestoreValue `json:"profile"`
+	Model            chatGPTRestoreValue `json:"model"`
+	ModelProvider    chatGPTRestoreValue `json:"model_provider"`
+	ModelCatalogJSON chatGPTRestoreValue `json:"model_catalog_json"`
+}
 
 // ConfigureChatGPT adapts Ollama's reversible ChatGPT/Codex workspace provider
 // pattern to Alzette. The unified ChatGPT app currently exposes this workspace
@@ -58,6 +72,19 @@ func (m *Manager) ConfigureChatGPT(ctx context.Context, request ChatGPTRequest) 
 	if err != nil {
 		return nil, err
 	}
+	if chatGPTConfigIsManaged(parsed) && (chatGPTProviderIsOwned(parsed) || m.hasChatGPTRecoveryEvidence(configPath)) {
+		if err := m.restoreChatGPTLocked(ctx, configPath, catalogPath); err != nil {
+			return nil, fmt.Errorf("restore previous Alzette ChatGPT profile: %w", err)
+		}
+		beforeConfig, configMode, configExists, err = readSafe(configPath, true)
+		if err != nil {
+			return nil, err
+		}
+		parsed, err = parseChatGPTConfig(string(beforeConfig))
+		if err != nil {
+			return nil, err
+		}
+	}
 	if err := validateChatGPTOwnership(parsed); err != nil {
 		return nil, err
 	}
@@ -77,10 +104,170 @@ func (m *Manager) ConfigureChatGPT(ctx context.Context, request ChatGPTRequest) 
 	transaction := &transaction{}
 	transaction.addFile(configPath, beforeConfig, configMode, configExists, []byte(afterConfig))
 	transaction.addFile(catalogPath, beforeCatalog, catalogMode, catalogExists, afterCatalog)
-	if err := transaction.apply(ctx, m.secrets); err != nil {
+	if err := m.saveChatGPTRestoreState(beforeConfig, configExists); err != nil {
 		return nil, err
 	}
-	return transaction.resultWithStore(ChatGPT, strings.TrimSpace(request.Version), m.secrets), nil
+	if err := transaction.apply(ctx, m.secrets); err != nil {
+		_ = os.Remove(m.chatGPTRestorePath())
+		return nil, err
+	}
+	result := transaction.resultWithStore(ChatGPT, strings.TrimSpace(request.Version), m.secrets)
+	if result.Status == Configured {
+		result.rollback = func(ctx context.Context) error {
+			return m.restoreChatGPT(ctx, configPath, catalogPath)
+		}
+	}
+	return result, nil
+}
+
+func chatGPTConfigIsManaged(config chatGPTConfig) bool {
+	profile, _ := config.string("profile")
+	provider, _ := config.string("model_provider")
+	return profile == ChatGPTProviderID || provider == ChatGPTProviderID
+}
+
+func chatGPTProviderIsOwned(config chatGPTConfig) bool {
+	name, nameOK := config.string("model_providers", ChatGPTProviderID, "name")
+	environmentKey, keyOK := config.string("model_providers", ChatGPTProviderID, "env_key")
+	wireAPI, wireOK := config.string("model_providers", ChatGPTProviderID, "wire_api")
+	baseURL, baseOK := config.string("model_providers", ChatGPTProviderID, "base_url")
+	return nameOK && name == "Alzette" && keyOK && environmentKey == chatGPTCapabilityEnv &&
+		wireOK && wireAPI == "responses" && baseOK && strings.HasPrefix(baseURL, "http://")
+}
+
+func (m *Manager) hasChatGPTRecoveryEvidence(configPath string) bool {
+	for _, path := range []string{m.chatGPTRestorePath(), configPath + ".alzette-connect.bak"} {
+		if info, err := os.Lstat(path); err == nil && info.Mode().IsRegular() {
+			return true
+		}
+	}
+	return false
+}
+
+func chatGPTRestoreValueFrom(config chatGPTConfig, key string) chatGPTRestoreValue {
+	value, present := config.string(key)
+	return chatGPTRestoreValue{Present: present, Value: value}
+}
+
+func chatGPTRestoreStateFrom(data []byte, existed bool) (chatGPTRestoreState, error) {
+	config, err := parseChatGPTConfig(string(data))
+	if err != nil {
+		return chatGPTRestoreState{}, err
+	}
+	return chatGPTRestoreState{
+		ConfigExisted:    existed,
+		Profile:          chatGPTRestoreValueFrom(config, "profile"),
+		Model:            chatGPTRestoreValueFrom(config, "model"),
+		ModelProvider:    chatGPTRestoreValueFrom(config, "model_provider"),
+		ModelCatalogJSON: chatGPTRestoreValueFrom(config, "model_catalog_json"),
+	}, nil
+}
+
+func (m *Manager) chatGPTRestorePath() string {
+	return filepath.Join(m.userDataDir, "Alzette Connect", chatGPTRestoreFilename)
+}
+
+func (m *Manager) saveChatGPTRestoreState(config []byte, existed bool) error {
+	state, err := chatGPTRestoreStateFrom(config, existed)
+	if err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+	return atomicWrite(m.chatGPTRestorePath(), append(data, '\n'), 0o600)
+}
+
+func (m *Manager) loadChatGPTRestoreState(configPath string) (chatGPTRestoreState, error) {
+	data, _, _, err := readSafe(m.chatGPTRestorePath(), false)
+	if err == nil {
+		var state chatGPTRestoreState
+		if json.Unmarshal(data, &state) != nil {
+			return chatGPTRestoreState{}, errors.New("invalid Alzette ChatGPT restore state")
+		}
+		return state, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return chatGPTRestoreState{}, err
+	}
+	// Versions before 0.3.6 recorded the employee's original profile in the
+	// transaction backup only. Read it once so an upgrade can repair an
+	// already-preserved profile without overwriting later ChatGPT changes.
+	backup, _, existed, backupErr := readSafe(configPath+".alzette-connect.bak", true)
+	if backupErr != nil {
+		return chatGPTRestoreState{}, backupErr
+	}
+	return chatGPTRestoreStateFrom(backup, existed)
+}
+
+func (m *Manager) restoreChatGPT(ctx context.Context, configPath, catalogPath string) error {
+	unlock, err := acquireConfigLock(ctx, configPath)
+	if err != nil {
+		return err
+	}
+	defer unlock()
+	return m.restoreChatGPTLocked(ctx, configPath, catalogPath)
+}
+
+func (m *Manager) restoreChatGPTLocked(ctx context.Context, configPath, catalogPath string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	current, mode, exists, err := readSafe(configPath, true)
+	if err != nil {
+		return err
+	}
+	parsed, err := parseChatGPTConfig(string(current))
+	if err != nil {
+		return err
+	}
+	state, err := m.loadChatGPTRestoreState(configPath)
+	if err != nil {
+		return err
+	}
+
+	restored := string(current)
+	if chatGPTConfigIsManaged(parsed) {
+		restored = chatGPTRestoreRootString(restored, "profile", state.Profile)
+		restored = chatGPTRestoreRootString(restored, "model", state.Model)
+		restored = chatGPTRestoreRootString(restored, "model_provider", state.ModelProvider)
+		restored = chatGPTRestoreRootString(restored, "model_catalog_json", state.ModelCatalogJSON)
+	}
+	// This identifier is reserved by validateChatGPTOwnership, so the section
+	// belongs to Connect even when ChatGPT has reformatted it or added runtime
+	// defaults. Removing that section preserves every unrelated newer setting.
+	restored = chatGPTRemoveSection(restored, "[model_providers."+ChatGPTProviderID+"]")
+	restored = chatGPTRemoveSection(restored, "[profiles."+ChatGPTProviderID+"]")
+	if _, err := parseChatGPTConfig(restored); err != nil {
+		return err
+	}
+	if state.ConfigExisted || strings.TrimSpace(restored) != "" {
+		if !exists {
+			mode = 0o600
+		}
+		if err := atomicWrite(configPath, []byte(restored), mode); err != nil {
+			return err
+		}
+	} else if err := os.Remove(configPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	finalConfig, err := parseChatGPTConfig(restored)
+	if err != nil {
+		return err
+	}
+	activeCatalog, _ := finalConfig.string("model_catalog_json")
+	if activeCatalog != catalogPath {
+		if err := os.Remove(catalogPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	if err := os.Remove(m.chatGPTRestorePath()); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	_ = os.Remove(configPath + ".alzette-connect.bak")
+	return nil
 }
 
 func validateChatGPTOwnership(config chatGPTConfig) error {

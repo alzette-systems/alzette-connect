@@ -161,7 +161,7 @@ func TestConfigureChatGPTRejectsUnownedProvider(t *testing.T) {
 	}
 }
 
-func TestChatGPTRollbackRefusesToOverwriteAChangedProfile(t *testing.T) {
+func TestChatGPTRollbackPreservesAReplacementProfile(t *testing.T) {
 	root := canonicalTempRoot(t)
 	configPath := filepath.Join(root, ".codex", "config.toml")
 	mustWrite(t, configPath, []byte("model = \"personal\"\n"), 0o600)
@@ -174,12 +174,96 @@ func TestChatGPTRollbackRefusesToOverwriteAChangedProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	mustWrite(t, configPath, []byte("model = \"employee-changed-this\"\n"), 0o600)
-	if err := result.Rollback(context.Background()); !errors.Is(err, ErrStaleRollback) {
-		t.Fatalf("rollback error=%v, want ErrStaleRollback", err)
+	if err := result.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
 	}
 	changed, _ := os.ReadFile(configPath)
 	if string(changed) != "model = \"employee-changed-this\"\n" {
-		t.Fatalf("stale rollback overwrote the employee profile: %s", changed)
+		t.Fatalf("ownership-aware rollback overwrote the replacement profile: %s", changed)
+	}
+}
+
+func TestChatGPTRollbackPreservesNewerSettingsAndRemovesOwnedProfile(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	before := "model = \"personal\"\napproval_policy = \"untrusted\"\n\n[features]\nlegacy = true\n"
+	mustWrite(t, configPath, []byte(before), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	manager := testManagerForOS(t, root, "darwin", &memorySecrets{values: map[string]string{}}, stopped(false))
+	result, err := manager.ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	configured, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newer := chatGPTSetRootString(string(configured), "approval_policy", "never")
+	newer = strings.Replace(newer, "wire_api = \"responses\"", "wire_api = \"responses\"\nruntime_default = \"preserve-until-cleanup\"", 1)
+	mustWrite(t, configPath, []byte(newer), 0o600)
+	if err := result.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	restoredData, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	restored := string(restoredData)
+	parsed, err := parseChatGPTConfig(restored)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if model, _ := parsed.string("model"); model != "personal" {
+		t.Fatalf("model=%q, want personal in %s", model, restored)
+	}
+	if policy, _ := parsed.string("approval_policy"); policy != "never" {
+		// Connect restores only the four root values it owns. Other settings
+		// written while ChatGPT was open remain untouched.
+		t.Fatalf("approval policy=%q, want newer value in %s", policy, restored)
+	}
+	if parsed.exists("model_provider") || parsed.exists("model_catalog_json") || parsed.exists("model_providers", ChatGPTProviderID) {
+		t.Fatalf("Alzette-owned ChatGPT profile survived cleanup: %s", restored)
+	}
+	features, ok := parsed.values["features"].(map[string]any)
+	if !ok {
+		t.Fatalf("unrelated feature table was not preserved: %s", restored)
+	}
+	if enabled, ok := features["legacy"].(bool); !ok || !enabled {
+		t.Fatalf("unrelated settings were not preserved: %s", restored)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("owned catalogue survived cleanup: %v", err)
+	}
+}
+
+func TestConfigureChatGPTRecoversPreRestoreStateRelease(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	before := []byte("model = \"personal\"\n")
+	mustWrite(t, configPath+".alzette-connect.bak", before, 0o600)
+	legacyManaged := "model = \"company-chat\"\nmodel_provider = \"alzette-connect\"\nmodel_catalog_json = \"" + filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename) + "\"\n\n[model_providers.alzette-connect]\nname = \"Alzette\"\nbase_url = \"http://127.0.0.1:4242/v1/\"\nenv_key = \"ALZETTE_CONNECT_SESSION_KEY\"\nwire_api = \"responses\"\nruntime_default = true\n"
+	mustWrite(t, configPath, []byte(legacyManaged), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	manager := testManagerForOS(t, root, "darwin", &memorySecrets{values: map[string]string{}}, stopped(false))
+	result, err := manager.ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := result.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	restored, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(restored) != string(before) {
+		t.Fatalf("pre-restore-state profile was not recovered exactly: %s", restored)
 	}
 }
 

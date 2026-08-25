@@ -109,6 +109,13 @@ func chatGPTRemoveRoot(text, key string) string {
 	return strings.Join(out, "")
 }
 
+func chatGPTRestoreRootString(text, key string, before chatGPTRestoreValue) string {
+	if before.Present {
+		return chatGPTSetRootString(text, key, before.Value)
+	}
+	return chatGPTRemoveRoot(text, key)
+}
+
 func chatGPTRootLineHasKey(line, key string) bool {
 	values := map[string]any{}
 	if err := toml.Unmarshal([]byte(line+"\n"), &values); err != nil {
@@ -133,6 +140,22 @@ func chatGPTUpsertSection(text, header string, lines []string) string {
 		text += "\n"
 	}
 	return text + block
+}
+
+func chatGPTRemoveSection(text, header string) string {
+	target, ok := chatGPTTablePath(header)
+	if !ok {
+		return text
+	}
+	start, end, found := chatGPTSectionRange(text, target)
+	if !found {
+		return text
+	}
+	trimmed := text[:start] + text[end:]
+	for strings.Contains(trimmed, "\n\n\n") {
+		trimmed = strings.ReplaceAll(trimmed, "\n\n\n", "\n\n")
+	}
+	return strings.TrimRight(trimmed, "\n") + "\n"
 }
 
 func chatGPTSectionRange(text string, target []string) (int, int, bool) {

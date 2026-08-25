@@ -176,11 +176,11 @@ FORM: App-first launch ledger with persistent supervision; grounded structure 3,
         <section class="screen screen--workspace" data-screen="recovery" aria-labelledby="recovery-title" hidden>
           <section class="attention-strip" role="status">
             <span aria-hidden="true">!</span>
-            <div><strong>Local application cleanup needs attention.</strong><small>The private listener is closed; Connect will not overwrite a newer application file.</small></div>
+            <div><strong data-recovery-strip-title>Cleanup needs one more step.</strong><small data-recovery-strip-copy>Your private connection is already closed.</small></div>
           </section>
           <section class="recovery-region">
             <p class="quiet-label">LOCAL RECOVERY</p>
-            <h1 id="recovery-title" tabindex="-1">Review the application profile</h1>
+            <h1 id="recovery-title" tabindex="-1" data-recovery-title>Finish disconnecting</h1>
             <p data-recovery-message>Connect could not confirm every local cleanup step.</p>
             <dl class="recovery-ledger">
               <div><dt>Local connection</dt><dd data-recovery-local></dd></div>
@@ -190,8 +190,8 @@ FORM: App-first launch ledger with persistent supervision; grounded structure 3,
             <aside class="recovery-note"><strong>No remote credential is exposed.</strong><p>The application only received a local capability that is no longer accepted.</p></aside>
           </section>
           <section class="recovery-actions">
-            <button class="button button--secondary" type="button" data-back-launcher>Return to applications</button>
-            <button class="button button--primary" type="button" data-open-help>Open recovery guide</button>
+            <button class="button button--secondary" type="button" data-back-launcher>Not now</button>
+            <button class="button button--primary" type="button" data-retry-cleanup>Try cleanup again</button>
           </section>
         </section>
 

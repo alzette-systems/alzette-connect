@@ -433,10 +433,19 @@
     if (screen === "preparing") renderPreparing();
     if (screen === "running") renderRunning(context);
     if (screen === "recovery") {
+      const profileNeedsReview = state.snapshot.launch.profileStatus !== "restored";
+      const grantNeedsRetry = state.snapshot.launch.grantStatus !== "confirmed";
+      const applicationName = state.snapshot.launch.application || "The application";
+      $("[data-recovery-strip-title]").textContent = profileNeedsReview ? `${applicationName} saved newer local settings.` : "Remote revocation needs another check.";
+      $("[data-recovery-strip-copy]").textContent = profileNeedsReview
+        ? "The private connection is closed; Connect preserved ChatGPT's newer settings."
+        : "The local connection and application profile are already safe.";
+      $("[data-recovery-title]").textContent = profileNeedsReview ? `Finish cleaning up ${applicationName}` : "Finish disconnecting";
       $("[data-recovery-message]").textContent = state.snapshot.launch.message || "Connect could not confirm every cleanup step.";
       $("[data-recovery-local]").textContent = state.snapshot.launch.localClosed ? "Closed" : "Confirmation unavailable";
       $("[data-recovery-grant]").textContent = state.snapshot.launch.grantStatus === "confirmed" ? "Revocation confirmed" : "Revocation not confirmed";
-      $("[data-recovery-profile]").textContent = state.snapshot.launch.profileStatus === "restored" ? "Restored" : "Preserved for manual review";
+      $("[data-recovery-profile]").textContent = profileNeedsReview ? "Newer settings preserved" : "Restored";
+      $("[data-retry-cleanup]").textContent = profileNeedsReview && grantNeedsRetry ? "Retry safe cleanup" : profileNeedsReview ? "Restore previous profile" : "Check revocation again";
     }
     renderDiagnostics(context);
     showScreen(screen);
@@ -497,7 +506,15 @@
     state.recoveryDismissed = false;
     render();
   });
-  $("[data-open-help]").addEventListener("click", () => showToast("Recovery guide is not bundled in this internal build yet. The application profile was preserved."));
+  $("[data-retry-cleanup]").addEventListener("click", async () => {
+    const button = $("[data-retry-cleanup]");
+    button.disabled = true;
+    const label = button.textContent;
+    button.textContent = "Cleaning up…";
+    try { await emitAction("retry-cleanup"); }
+    catch (error) { showToast(error instanceof Error ? error.message : "Cleanup still needs attention."); }
+    finally { button.disabled = false; button.textContent = label; }
+  });
   $("[data-home]").addEventListener("click", () => {
     if (state.snapshot.launch.phase === "running") return;
     closeCatalogue();

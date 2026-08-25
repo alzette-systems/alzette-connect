@@ -48,13 +48,15 @@ test("runtime state boundary avoids fixture claims, credential persistence, and 
   const script = `${appScript}\n${bootstrapScript}\n${nativeScript}`;
   assert.match(script, /window\.AlzetteConnect/);
   assert.match(script, /connect:state/);
-  for (const action of ["SelectContext", "LaunchApplication", "CancelLaunch", "Disconnect", "HideToTray"]) {
+  for (const action of ["SelectContext", "LaunchApplication", "CancelLaunch", "Disconnect", "RetryCleanup", "HideToTray"]) {
     assert.match(nativeScript, new RegExp(action));
   }
   assert.doesNotMatch(script, /innerHTML|outerHTML|insertAdjacentHTML/);
   assert.doesNotMatch(script, /localStorage|sessionStorage|indexedDB/i);
   assert.doesNotMatch(`${html}\n${appScript}`, /Northstar|Alex Morgan|Example Bank|approved-coder|reasoning-private/);
   assert.doesNotMatch(html, /CONCEPT|illustrative catalogue|prototype/i);
+  assert.match(html, /data-retry-cleanup/);
+  assert.doesNotMatch(html, /recovery guide is not bundled/i);
 });
 
 test("application readiness is qualified and future adapters remain disabled", async () => {
