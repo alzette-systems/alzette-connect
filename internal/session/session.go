@@ -261,7 +261,7 @@ func (s *Session) discover(ctx context.Context) error {
 	if !sameURL(metadata.ControlOrigin, s.config.ControlURL) || validateServerURL(metadata.ControlOrigin, s.config.AllowInsecure) != nil || validateServerURL(metadata.GatewayBaseURL, s.config.AllowInsecure) != nil || validateServerURL(metadata.Issuer, s.config.AllowInsecure) != nil {
 		return errors.New("Alzette agent configuration is unsafe")
 	}
-	discovery, err := readJSON[Discovery](ctx, s.config.HTTPClient, strings.TrimRight(metadata.Issuer, "/")+"/.well-known/openid-configuration")
+	discovery, err := readCompatibleJSON[Discovery](ctx, s.config.HTTPClient, strings.TrimRight(metadata.Issuer, "/")+"/.well-known/openid-configuration")
 	if err != nil {
 		return fmt.Errorf("discover Alzette identity service: %w", err)
 	}
@@ -439,6 +439,17 @@ func opaque(source io.Reader, prefix string, size int) (string, error) {
 }
 
 func readJSON[T any](ctx context.Context, client *http.Client, target string) (T, error) {
+	return readJSONWith[T](ctx, client, target, decodeJSON)
+}
+
+// readCompatibleJSON accepts extension members in provider-owned protocol
+// documents. OIDC discovery and OAuth responses are explicitly extensible;
+// Alzette-owned schemas continue to use readJSON and reject unknown fields.
+func readCompatibleJSON[T any](ctx context.Context, client *http.Client, target string) (T, error) {
+	return readJSONWith[T](ctx, client, target, decodeCompatibleJSON)
+}
+
+func readJSONWith[T any](ctx context.Context, client *http.Client, target string, decode func(io.Reader, interface{}) error) (T, error) {
 	var result T
 	request, _ := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	request.Header.Set("Accept", "application/json")
@@ -447,8 +458,11 @@ func readJSON[T any](ctx context.Context, client *http.Client, target string) (T
 		return result, err
 	}
 	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK || decodeJSON(response.Body, &result) != nil {
-		return result, errors.New("unexpected HTTP response")
+	if response.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("unexpected HTTP status %d", response.StatusCode)
+	}
+	if err := decode(response.Body, &result); err != nil {
+		return result, fmt.Errorf("decode JSON response: %w", err)
 	}
 	return result, nil
 }
@@ -456,6 +470,15 @@ func readJSON[T any](ctx context.Context, client *http.Client, target string) (T
 func decodeJSON(reader io.Reader, target interface{}) error {
 	decoder := json.NewDecoder(io.LimitReader(reader, 1<<20))
 	decoder.DisallowUnknownFields()
+	return decodeJSONDocument(decoder, target)
+}
+
+func decodeCompatibleJSON(reader io.Reader, target interface{}) error {
+	decoder := json.NewDecoder(io.LimitReader(reader, 1<<20))
+	return decodeJSONDocument(decoder, target)
+}
+
+func decodeJSONDocument(decoder *json.Decoder, target interface{}) error {
 	if err := decoder.Decode(target); err != nil {
 		return err
 	}

@@ -133,7 +133,7 @@ func (s *Session) exchange(ctx context.Context, form url.Values) (oauthTokens, e
 	}
 	defer response.Body.Close()
 	var tokens oauthTokens
-	if response.StatusCode != http.StatusOK || decodeJSON(response.Body, &tokens) != nil || tokens.AccessToken == "" || !strings.EqualFold(tokens.TokenType, "Bearer") || tokens.ExpiresIn <= 0 || tokens.ExpiresIn > 3600 {
+	if response.StatusCode != http.StatusOK || decodeCompatibleJSON(response.Body, &tokens) != nil || tokens.AccessToken == "" || !strings.EqualFold(tokens.TokenType, "Bearer") || tokens.ExpiresIn <= 0 || tokens.ExpiresIn > 3600 {
 		return oauthTokens{}, errors.New("identity service returned an invalid token response")
 	}
 	return tokens, nil

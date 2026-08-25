@@ -32,7 +32,11 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 		case "/.well-known/alzette-agent-configuration":
 			writeJSON(w, http.StatusOK, map[string]interface{}{"schema": "alzette.agent-configuration.v1", "issuer": server.URL, "oauth_client_id": "connect-test", "control_origin": server.URL, "gateway_base_url": server.URL + "/v1", "oauth_redirect_uri": callback, "login_modes": []string{"authorization_code_pkce_s256"}})
 		case "/.well-known/openid-configuration":
-			writeJSON(w, http.StatusOK, map[string]string{"issuer": server.URL, "authorization_endpoint": server.URL + "/authorize", "token_endpoint": server.URL + "/token"})
+			writeJSON(w, http.StatusOK, map[string]interface{}{
+				"issuer": server.URL, "authorization_endpoint": server.URL + "/authorize", "token_endpoint": server.URL + "/token",
+				"userinfo_endpoint": server.URL + "/api/userinfo", "jwks_uri": server.URL + "/.well-known/jwks",
+				"scopes_supported": []string{"openid", "email", "profile", "offline_access"}, "code_challenge_methods_supported": []string{"S256"},
+			})
 		case "/authorize":
 			if r.URL.Query().Get("code_challenge_method") != "S256" || r.URL.Query().Get("state") == "" || r.URL.Query().Get("nonce") == "" || r.URL.Query().Get("redirect_uri") != callback {
 				http.Error(w, "bad authorization", http.StatusBadRequest)
@@ -58,7 +62,7 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 					http.Error(w, "bad code", http.StatusBadRequest)
 					return
 				}
-				writeJSON(w, http.StatusOK, map[string]interface{}{"access_token": "oauth-access-one", "refresh_token": "refresh-token-one-long", "token_type": "Bearer", "expires_in": 3600})
+				writeJSON(w, http.StatusOK, map[string]interface{}{"access_token": "oauth-access-one", "refresh_token": "refresh-token-one-long", "token_type": "Bearer", "expires_in": 3600, "scope": "openid email profile offline_access"})
 				return
 			}
 			refreshCalls++
@@ -66,7 +70,7 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 				http.Error(w, "bad refresh", http.StatusBadRequest)
 				return
 			}
-			writeJSON(w, http.StatusOK, map[string]interface{}{"access_token": "oauth-access-two", "refresh_token": "refresh-token-two-long", "token_type": "Bearer", "expires_in": 3600})
+			writeJSON(w, http.StatusOK, map[string]interface{}{"access_token": "oauth-access-two", "refresh_token": "refresh-token-two-long", "token_type": "Bearer", "expires_in": 3600, "scope": "openid email profile offline_access"})
 		case "/api/agent/contexts":
 			if r.Header.Get("Authorization") != "Bearer oauth-access-one" && r.Header.Get("Authorization") != "Bearer oauth-access-two" {
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
@@ -159,6 +163,40 @@ func TestRefreshWithoutRotationFailsClosedAndDeletesCredential(t *testing.T) {
 	}
 	if _, err := store.Load(context.Background(), "work"); !errors.Is(err, credentialstore.ErrNotFound) {
 		t.Fatalf("credential survived ambiguous rotation: %v", err)
+	}
+}
+
+func TestProviderJSONAllowsExtensionsWhileOwnedJSONStaysStrict(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/metadata":
+			writeJSON(w, http.StatusOK, map[string]interface{}{
+				"issuer": "https://identity.example", "authorization_endpoint": "https://identity.example/authorize", "token_endpoint": "https://identity.example/token",
+				"userinfo_endpoint": "https://identity.example/api/userinfo", "jwks_uri": "https://identity.example/.well-known/jwks",
+			})
+		case "/unavailable":
+			http.Error(w, "upstream unavailable", http.StatusBadGateway)
+		case "/invalid":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = io.WriteString(w, `{not-json}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	discovery, err := readCompatibleJSON[Discovery](context.Background(), server.Client(), server.URL+"/metadata")
+	if err != nil || discovery.Issuer != "https://identity.example" {
+		t.Fatalf("compatible discovery=%#v err=%v", discovery, err)
+	}
+	if _, err := readJSON[Discovery](context.Background(), server.Client(), server.URL+"/metadata"); err == nil || !strings.Contains(err.Error(), "unknown field") {
+		t.Fatalf("strict provider decode error=%v", err)
+	}
+	if _, err := readCompatibleJSON[Discovery](context.Background(), server.Client(), server.URL+"/unavailable"); err == nil || !strings.Contains(err.Error(), "HTTP status 502") {
+		t.Fatalf("status error=%v", err)
+	}
+	if _, err := readCompatibleJSON[Discovery](context.Background(), server.Client(), server.URL+"/invalid"); err == nil || !strings.Contains(err.Error(), "decode JSON response") {
+		t.Fatalf("decode error=%v", err)
 	}
 }
 
