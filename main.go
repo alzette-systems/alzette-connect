@@ -54,6 +54,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	initialUpdate := appstate.Update{State: "idle", CurrentVersion: updateClient.CurrentVersion()}
+	if failure, ok := updater.ConsumeInstallFailure(); ok {
+		initialUpdate = appstate.Update{
+			State:            "error",
+			CurrentVersion:   updateClient.CurrentVersion(),
+			AvailableVersion: failure.Version,
+			Message:          failure.Message,
+		}
+	}
 	clientManager, err := clientconfig.New(clientconfig.Options{})
 	if err != nil {
 		log.Fatal(err)
@@ -73,10 +82,7 @@ func main() {
 		clientConfig: clientManager,
 		applications: clients.applicationStates(),
 		updater:      updateClient,
-		update: appstate.Update{
-			State:          "idle",
-			CurrentVersion: updateClient.CurrentVersion(),
-		},
+		update:       initialUpdate,
 	}
 	var primaryWindow *application.WebviewWindow
 

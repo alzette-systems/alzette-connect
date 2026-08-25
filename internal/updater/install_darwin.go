@@ -14,9 +14,12 @@ import (
 	"time"
 )
 
-func startInstall(assetPath string) error {
+func startInstall(assetPath, expectedVersion string) error {
 	executable, err := currentExecutable()
 	if err != nil {
+		return err
+	}
+	if err := preflightMacInstall(executable); err != nil {
 		return err
 	}
 	directory, err := os.MkdirTemp("", "alzette-connect-helper-")
@@ -28,7 +31,7 @@ func startInstall(assetPath string) error {
 		_ = os.RemoveAll(directory)
 		return errors.New("prepare update helper")
 	}
-	command := exec.Command(helper, helperFlag, strconv.Itoa(os.Getpid()), assetPath, executable)
+	command := exec.Command(helper, helperFlag, strconv.Itoa(os.Getpid()), assetPath, executable, expectedVersion)
 	command.Stdin = nil
 	command.Stdout = nil
 	command.Stderr = nil
@@ -39,17 +42,14 @@ func startInstall(assetPath string) error {
 	return command.Process.Release()
 }
 
-func applyUpdate(rawPID, assetPath, executable string) error {
+func applyUpdate(rawPID, assetPath, executable, expectedVersion string) error {
 	pid, err := strconv.Atoi(rawPID)
 	if err != nil || pid <= 1 {
 		return errors.New("invalid update process")
 	}
-	if !strings.HasSuffix(executable, "/Contents/MacOS/alzette-connect") {
-		return errors.New("Alzette Connect is not running from an application bundle")
-	}
-	currentApp := filepath.Clean(filepath.Join(filepath.Dir(executable), "..", ".."))
-	if filepath.Base(currentApp) != "Alzette Connect.app" {
-		return errors.New("unexpected application bundle")
+	currentApp, err := macBundleForExecutable(executable)
+	if err != nil {
+		return err
 	}
 	if err := waitForProcess(pid, 45*time.Second); err != nil {
 		return err
@@ -64,7 +64,7 @@ func applyUpdate(rawPID, assetPath, executable string) error {
 		return errors.New("the verified update could not be unpacked")
 	}
 	newApp := filepath.Join(stage, "Alzette Connect.app")
-	if err := verifyMacBundle(newApp); err != nil {
+	if err := verifyMacBundle(newApp, expectedVersion); err != nil {
 		return err
 	}
 	backup := currentApp + ".previous-" + time.Now().UTC().Format("20060102T150405Z")
@@ -75,7 +75,7 @@ func applyUpdate(rawPID, assetPath, executable string) error {
 		_ = os.Rename(backup, currentApp)
 		return errors.New("the update could not replace the installed application")
 	}
-	if err := exec.Command("/usr/bin/open", currentApp).Start(); err != nil {
+	if err := exec.Command("/usr/bin/open", "-n", currentApp).Start(); err != nil {
 		_ = os.RemoveAll(currentApp)
 		_ = os.Rename(backup, currentApp)
 		return errors.New("the updated application could not be reopened")
@@ -84,7 +84,7 @@ func applyUpdate(rawPID, assetPath, executable string) error {
 	return nil
 }
 
-func verifyMacBundle(path string) error {
+func verifyMacBundle(path, expectedVersion string) error {
 	info, err := os.Lstat(path)
 	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return ErrUnsafeRelease
@@ -97,11 +97,53 @@ func verifyMacBundle(path string) error {
 	if err != nil || strings.TrimSpace(string(output)) != "systems.alzette.Connect" {
 		return ErrUnsafeRelease
 	}
+	output, err = exec.Command("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleShortVersionString", filepath.Join(path, "Contents", "Info.plist")).Output()
+	if err != nil || normalizeVersion(strings.TrimSpace(string(output))) != expectedVersion {
+		return errors.New("the update application version is invalid")
+	}
 	binary := filepath.Join(path, "Contents", "MacOS", "alzette-connect")
 	if info, err := os.Lstat(binary); err != nil || !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
 		return ErrUnsafeRelease
 	}
 	return nil
+}
+
+func macBundleForExecutable(executable string) (string, error) {
+	clean := filepath.Clean(executable)
+	if !strings.HasSuffix(clean, "/Contents/MacOS/alzette-connect") {
+		return "", errors.New("Alzette Connect is not running from an application bundle")
+	}
+	bundle := filepath.Clean(filepath.Join(filepath.Dir(clean), "..", ".."))
+	if filepath.Base(bundle) != "Alzette Connect.app" {
+		return "", errors.New("unexpected application bundle")
+	}
+	return bundle, nil
+}
+
+func preflightMacInstall(executable string) error {
+	bundle, err := macBundleForExecutable(executable)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(bundle, "/AppTranslocation/") {
+		return errors.New("Move Alzette Connect to Applications, reopen it there, then update")
+	}
+	probe, err := os.MkdirTemp(filepath.Dir(bundle), ".alzette-connect-update-check-")
+	if err != nil {
+		return errors.New("Move Alzette Connect to a writable Applications folder, then update")
+	}
+	if err := os.Remove(probe); err != nil {
+		return errors.New("the application folder could not be prepared for update")
+	}
+	return nil
+}
+
+func reopenAfterUpdateFailure(executable string) error {
+	bundle, err := macBundleForExecutable(executable)
+	if err != nil {
+		return err
+	}
+	return exec.Command("/usr/bin/open", "-n", bundle).Start()
 }
 
 func waitForProcess(pid int, timeout time.Duration) error {

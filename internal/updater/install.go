@@ -9,11 +9,14 @@ const helperFlag = "--apply-connect-update"
 
 // StartInstall launches the platform updater only after the package has passed
 // the pinned release URL, size, and SHA-256 checks in Download.
-func StartInstall(assetPath string) error {
+func StartInstall(assetPath, expectedVersion string) error {
 	if assetPath == "" {
 		return errors.New("verified update package is missing")
 	}
-	return startInstall(assetPath)
+	if _, ok := parseVersion(normalizeVersion(expectedVersion)); !ok {
+		return errors.New("verified update version is invalid")
+	}
+	return startInstall(assetPath, normalizeVersion(expectedVersion))
 }
 
 // HandleHelper runs before Wails starts. The helper receives only local paths
@@ -22,10 +25,19 @@ func HandleHelper(arguments []string) (bool, error) {
 	if len(arguments) < 2 || arguments[1] != helperFlag {
 		return false, nil
 	}
-	if len(arguments) != 5 {
+	if len(arguments) != 6 {
 		return true, errors.New("invalid update helper request")
 	}
-	return true, applyUpdate(arguments[2], arguments[3], arguments[4])
+	expectedVersion := normalizeVersion(arguments[5])
+	if _, ok := parseVersion(expectedVersion); !ok {
+		return true, errors.New("invalid update helper version")
+	}
+	err := applyUpdate(arguments[2], arguments[3], arguments[4], expectedVersion)
+	if err != nil {
+		_ = recordInstallFailure(expectedVersion, err)
+		_ = reopenAfterUpdateFailure(arguments[4])
+	}
+	return true, err
 }
 
 func currentExecutable() (string, error) {

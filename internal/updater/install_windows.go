@@ -14,7 +14,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func startInstall(assetPath string) error {
+func startInstall(assetPath, expectedVersion string) error {
 	executable, err := currentExecutable()
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func startInstall(assetPath string) error {
 		_ = os.RemoveAll(directory)
 		return errors.New("prepare update helper")
 	}
-	command := exec.Command(helper, helperFlag, strconv.Itoa(os.Getpid()), assetPath, executable)
+	command := exec.Command(helper, helperFlag, strconv.Itoa(os.Getpid()), assetPath, executable, expectedVersion)
 	if err := command.Start(); err != nil {
 		_ = os.RemoveAll(directory)
 		return errors.New("start update helper")
@@ -36,7 +36,7 @@ func startInstall(assetPath string) error {
 	return command.Process.Release()
 }
 
-func applyUpdate(rawPID, assetPath, executable string) error {
+func applyUpdate(rawPID, assetPath, executable, _ string) error {
 	pid, err := strconv.ParseUint(rawPID, 10, 32)
 	if err != nil || pid <= 1 {
 		return errors.New("invalid update process")
@@ -62,6 +62,10 @@ func applyUpdate(rawPID, assetPath, executable string) error {
 	}
 	_ = os.Remove(assetPath)
 	return nil
+}
+
+func reopenAfterUpdateFailure(executable string) error {
+	return exec.Command(executable).Start()
 }
 
 func copyWindowsFile(source, target string) error {

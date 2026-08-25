@@ -2,5 +2,6 @@
 
 package updater
 
-func startInstall(string) error                { return ErrUnsupportedOS }
-func applyUpdate(string, string, string) error { return ErrUnsupportedOS }
+func startInstall(string, string) error                { return ErrUnsupportedOS }
+func applyUpdate(string, string, string, string) error { return ErrUnsupportedOS }
+func reopenAfterUpdateFailure(string) error            { return nil }

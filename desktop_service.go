@@ -212,8 +212,8 @@ func (s *desktopService) InstallUpdate() error {
 		s.setUpdate(next)
 		return errors.New(next.Message)
 	}
-	if err := updater.StartInstall(assetPath); err != nil {
-		next := appstate.Update{State: "error", CurrentVersion: current, AvailableVersion: release.Version, Message: "The integrity-checked update could not be opened for installation."}
+	if err := updater.StartInstall(assetPath, release.Version); err != nil {
+		next := appstate.Update{State: "error", CurrentVersion: current, AvailableVersion: release.Version, Message: err.Error()}
 		s.setUpdate(next)
 		return errors.New(next.Message)
 	}
