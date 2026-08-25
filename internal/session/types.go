@@ -52,6 +52,7 @@ type mintResponse struct {
 		AccessToken string    `json:"access_token"`
 		TokenType   string    `json:"token_type"`
 		ExpiresAt   time.Time `json:"expires_at"`
+		Scope       []string  `json:"scope"`
 	} `json:"credential"`
 	Context        Context  `json:"context"`
 	GatewayBaseURL string   `json:"gateway_base_url"`

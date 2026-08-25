@@ -30,12 +30,13 @@ var (
 )
 
 type Release struct {
-	Version   string `json:"version"`
-	AssetName string `json:"asset_name"`
-	URL       string `json:"url"`
-	Digest    string `json:"digest"`
-	Size      int64  `json:"size"`
-	PageURL   string `json:"page_url"`
+	Version    string `json:"version"`
+	AssetName  string `json:"asset_name"`
+	URL        string `json:"url"`
+	Digest     string `json:"digest"`
+	Size       int64  `json:"size"`
+	PageURL    string `json:"page_url"`
+	Prerelease bool   `json:"prerelease"`
 }
 
 type Client struct {
@@ -132,11 +133,15 @@ func (c *Client) Check(ctx context.Context) (Release, error) {
 	if err := json.NewDecoder(reader).Decode(&releases); err != nil {
 		return Release{}, errors.New("the update service returned invalid data")
 	}
-	suffix, _ := assetSuffix(c.operatingSystem, c.architecture)
+	current, _ := parseVersion(c.currentVersion)
 	var best Release
 	for _, candidate := range releases {
 		version := normalizeVersion(candidate.TagName)
-		if candidate.Draft || !candidate.Prerelease || compareVersions(version, c.currentVersion) <= 0 {
+		if candidate.Draft || candidate.Prerelease && len(current.pre) == 0 || compareVersions(version, c.currentVersion) <= 0 {
+			continue
+		}
+		suffix, err := assetSuffixForVersion(c.operatingSystem, c.architecture, version)
+		if err != nil {
 			continue
 		}
 		asset, ok := matchingAsset(candidate.Assets, version, suffix)
@@ -148,7 +153,7 @@ func (c *Client) Check(ctx context.Context) (Release, error) {
 			continue
 		}
 		if best.Version == "" || compareVersions(version, best.Version) > 0 {
-			best = Release{Version: version, AssetName: asset.Name, URL: asset.BrowserDownloadURL, Digest: asset.Digest, Size: asset.Size, PageURL: pageURL}
+			best = Release{Version: version, AssetName: asset.Name, URL: asset.BrowserDownloadURL, Digest: asset.Digest, Size: asset.Size, PageURL: pageURL, Prerelease: candidate.Prerelease}
 		}
 	}
 	if best.Version == "" {
@@ -183,7 +188,11 @@ func trustedReleasePage(raw, version string) (string, bool) {
 }
 
 func (c *Client) Download(ctx context.Context, release Release) (string, error) {
-	if _, ok := matchingAsset([]githubAsset{{Name: release.AssetName, BrowserDownloadURL: release.URL, Digest: release.Digest, Size: release.Size}}, release.Version, mustAssetSuffix(c.operatingSystem, c.architecture)); !ok {
+	suffix, err := assetSuffixForVersion(c.operatingSystem, c.architecture, release.Version)
+	if err != nil {
+		return "", err
+	}
+	if _, ok := matchingAsset([]githubAsset{{Name: release.AssetName, BrowserDownloadURL: release.URL, Digest: release.Digest, Size: release.Size}}, release.Version, suffix); !ok {
 		return "", ErrUnsafeRelease
 	}
 	directory, err := os.MkdirTemp("", "alzette-connect-update-")
@@ -278,9 +287,16 @@ func assetSuffix(operatingSystem, architecture string) (string, error) {
 	}
 }
 
-func mustAssetSuffix(operatingSystem, architecture string) string {
-	value, _ := assetSuffix(operatingSystem, architecture)
-	return value
+func assetSuffixForVersion(operatingSystem, architecture, version string) (string, error) {
+	parsed, ok := parseVersion(version)
+	if !ok {
+		return "", ErrUnsafeRelease
+	}
+	arch := map[string]string{"amd64": "x64", "arm64": "arm64"}[architecture]
+	if operatingSystem == "darwin" && arch != "" && len(parsed.pre) == 0 {
+		return "-macOS-" + arch + ".zip", nil
+	}
+	return assetSuffix(operatingSystem, architecture)
 }
 
 func normalizeVersion(value string) string {

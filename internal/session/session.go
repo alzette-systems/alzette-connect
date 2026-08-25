@@ -183,7 +183,7 @@ func (s *Session) EnsureHumanCredential(ctx context.Context) (string, time.Time,
 		s.mu.Unlock()
 		return "", time.Time{}, ErrAccessRemoved
 	}
-	if response.StatusCode != http.StatusCreated || decodeJSON(response.Body, &result) != nil || result.Schema != "alzette.agent-credential.v1" || !validHumanToken(result.Credential.AccessToken) || !strings.EqualFold(result.Credential.TokenType, "Bearer") {
+	if response.StatusCode != http.StatusCreated || decodeJSON(response.Body, &result) != nil || result.Schema != "alzette.agent-credential.v1" || !validHumanToken(result.Credential.AccessToken) || !strings.EqualFold(result.Credential.TokenType, "Bearer") || !sameStrings(result.Credential.Scope, []string{"inference:write"}) {
 		return "", time.Time{}, errors.New("Alzette could not create a session credential")
 	}
 	if !sameURL(result.GatewayBaseURL, s.metadata.GatewayBaseURL) || result.Context.MembershipID != selected.MembershipID || !sameStrings(result.ModelAliases, selected.ModelAliases) {

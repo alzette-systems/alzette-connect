@@ -78,7 +78,7 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 			}
 			writeJSON(w, http.StatusOK, map[string]interface{}{"schema": "alzette.agent-contexts.v1", "contexts": []map[string]interface{}{{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}}}})
 		case "/api/agent/credentials":
-			writeJSON(w, http.StatusCreated, map[string]interface{}{"schema": "alzette.agent-credential.v1", "credential": map[string]interface{}{"access_token": "alz_u_01234567890123456789012345678901", "token_type": "Bearer", "expires_at": now.Add(10 * time.Minute)}, "context": map[string]interface{}{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}}, "gateway_base_url": server.URL + "/v1", "model_aliases": []string{"alzette-chat"}})
+			writeJSON(w, http.StatusCreated, map[string]interface{}{"schema": "alzette.agent-credential.v1", "credential": map[string]interface{}{"access_token": "alz_u_01234567890123456789012345678901", "token_type": "Bearer", "expires_at": now.Add(10 * time.Minute), "scope": []string{"inference:write"}}, "context": map[string]interface{}{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}}, "gateway_base_url": server.URL + "/v1", "model_aliases": []string{"alzette-chat"}})
 		case "/api/agent/credentials/revoke":
 			revokeCalls++
 			w.WriteHeader(http.StatusNoContent)

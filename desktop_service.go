@@ -134,7 +134,7 @@ func (s *desktopService) checkForUpdates(interactive bool) (appstate.Update, err
 	current := s.update.CurrentVersion
 	s.updateMu.RUnlock()
 	if interactive {
-		s.setUpdate(appstate.Update{State: "checking", CurrentVersion: current, Message: "Checking the pinned demo release channel…"})
+		s.setUpdate(appstate.Update{State: "checking", CurrentVersion: current, Message: "Checking the Alzette Connect release channel…"})
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -143,7 +143,7 @@ func (s *desktopService) checkForUpdates(interactive bool) (appstate.Update, err
 		s.updateMu.Lock()
 		s.updateRelease = updater.Release{}
 		s.updateMu.Unlock()
-		next := appstate.Update{State: "current", CurrentVersion: current, Message: "You’re using the latest demo release."}
+		next := appstate.Update{State: "current", CurrentVersion: current, Message: "You’re using the latest Alzette Connect release."}
 		s.setUpdate(next)
 		return next, nil
 	}
@@ -161,7 +161,10 @@ func (s *desktopService) checkForUpdates(interactive bool) (appstate.Update, err
 	s.updateMu.Lock()
 	s.updateRelease = release
 	s.updateMu.Unlock()
-	message := "Integrity-checked, unsigned internal demo. Connect will close, install, and reopen."
+	message := "Signed update verified. Connect will close, install, and reopen."
+	if release.Prerelease {
+		message = "Integrity-checked internal preview. Connect will close, install, and reopen."
+	}
 	if runtime.GOOS == "linux" {
 		message = "Integrity-checked, unsigned internal demo. Connect will open your system package installer."
 	}

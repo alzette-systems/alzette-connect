@@ -85,6 +85,24 @@ func TestCheckRejectsWrongAssetDigestOrRepository(t *testing.T) {
 	}
 }
 
+func TestStableMacChecksSignedReleaseAndIgnoresPreview(t *testing.T) {
+	payload := []byte("signed stable package")
+	digest := sha256.Sum256(payload)
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
+		response.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(response, `[{"tag_name":"connect-v0.3.6-demo.1","html_url":"https://github.com/alzette-systems/alzette-connect/releases/tag/connect-v0.3.6-demo.1","draft":false,"prerelease":true,"assets":[]},{"tag_name":"connect-v0.3.5","html_url":"https://github.com/alzette-systems/alzette-connect/releases/tag/connect-v0.3.5","draft":false,"prerelease":false,"assets":[{"name":"Alzette-Connect-0.3.5-macOS-arm64.zip","browser_download_url":"https://github.com/alzette-systems/alzette-connect/releases/download/connect-v0.3.5/Alzette-Connect-0.3.5-macOS-arm64.zip","digest":"sha256:%s","size":%d}]}]`, hex.EncodeToString(digest[:]), len(payload))
+	}))
+	defer server.Close()
+	client, err := New(Options{CurrentVersion: "0.3.4", OperatingSystem: "darwin", Architecture: "arm64", APIURL: "https://api.github.com/releases", HTTPClient: &http.Client{Transport: rewriteTransport{server: server.URL}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	release, err := client.Check(context.Background())
+	if err != nil || release.Version != "0.3.5" || release.Prerelease || release.AssetName != "Alzette-Connect-0.3.5-macOS-arm64.zip" {
+		t.Fatalf("stable release=%#v err=%v", release, err)
+	}
+}
+
 func TestDownloadRejectsTamperedContent(t *testing.T) {
 	want := sha256.Sum256([]byte("expected package"))
 	tampered := []byte("tampered package")
