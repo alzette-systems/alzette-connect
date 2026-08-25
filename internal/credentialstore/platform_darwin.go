@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/keybase/go-keychain"
+	"github.com/ticruz38/alzette-connect/internal/mackeychain"
 )
 
 const darwinService = "com.alzette.connect.refresh"
@@ -35,7 +35,7 @@ func (s *DarwinKeychain) Load(_ context.Context, profile string) (string, error)
 	if err := validate(profile, "", false); err != nil {
 		return "", err
 	}
-	value, err := keychain.GetGenericPassword(darwinService, profile, "", "")
+	value, err := mackeychain.Get(darwinService, profile)
 	if err != nil {
 		return "", mapDarwinError(err)
 	}
@@ -56,34 +56,14 @@ func (s *DarwinKeychain) Save(_ context.Context, profile, credential string) err
 	}
 	data := []byte(credential)
 	defer clear(data)
-	item := keychain.NewGenericPassword(darwinService, profile, "Alzette Connect", data, "")
-	item.SetSynchronizable(keychain.SynchronizableNo)
-	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
-	if err := keychain.AddItem(item); err == nil {
-		return nil
-	} else if !errors.Is(err, keychain.ErrorDuplicateItem) {
-		return mapDarwinError(err)
-	}
-	query := keychain.NewItem()
-	query.SetSecClass(keychain.SecClassGenericPassword)
-	query.SetService(darwinService)
-	query.SetAccount(profile)
-	update := keychain.NewItem()
-	update.SetData(data)
-	update.SetSynchronizable(keychain.SynchronizableNo)
-	update.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
-	return mapDarwinError(keychain.UpdateItem(query, update))
+	return mapDarwinError(mackeychain.Set(darwinService, profile, data))
 }
 
 func (s *DarwinKeychain) Delete(_ context.Context, profile string) error {
 	if err := validate(profile, "", false); err != nil {
 		return err
 	}
-	err := keychain.DeleteGenericPasswordItem(darwinService, profile)
-	if errors.Is(err, keychain.ErrorItemNotFound) {
-		return nil
-	}
-	return mapDarwinError(err)
+	return mapDarwinError(mackeychain.Delete(darwinService, profile))
 }
 
 func (s *DarwinKeychain) Acquire(ctx context.Context, profile string) (func(), error) {
@@ -94,8 +74,8 @@ func mapDarwinError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if errors.Is(err, keychain.ErrorItemNotFound) {
+	if errors.Is(err, mackeychain.ErrNotFound) {
 		return ErrNotFound
 	}
-	return fmt.Errorf("%w: macOS Keychain request failed", ErrUnavailable)
+	return fmt.Errorf("%w: %v", ErrUnavailable, err)
 }

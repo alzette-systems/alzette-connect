@@ -5,7 +5,6 @@ go 1.25.0
 require (
 	github.com/danieljoos/wincred v1.2.3
 	github.com/gofrs/flock v0.13.0
-	github.com/keybase/go-keychain v0.0.1
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/wailsapp/wails/v3 v3.0.0-alpha2.114
 	golang.org/x/sys v0.43.0
