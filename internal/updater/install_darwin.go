@@ -93,11 +93,11 @@ func verifyMacBundle(path, expectedVersion string) error {
 	if err := command.Run(); err != nil {
 		return errors.New("the update application signature is invalid")
 	}
-	output, err := exec.Command("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleIdentifier", filepath.Join(path, "Contents", "Info.plist")).Output()
-	if err != nil || strings.TrimSpace(string(output)) != "systems.alzette.Connect" {
+	identifier, err := macBundleIdentifier(path)
+	if err != nil || identifier != "systems.alzette.Connect" {
 		return ErrUnsafeRelease
 	}
-	output, err = exec.Command("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleShortVersionString", filepath.Join(path, "Contents", "Info.plist")).Output()
+	output, err := exec.Command("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleShortVersionString", filepath.Join(path, "Contents", "Info.plist")).Output()
 	if err != nil || normalizeVersion(strings.TrimSpace(string(output))) != expectedVersion {
 		return errors.New("the update application version is invalid")
 	}
@@ -114,10 +114,28 @@ func macBundleForExecutable(executable string) (string, error) {
 		return "", errors.New("Alzette Connect is not running from an application bundle")
 	}
 	bundle := filepath.Clean(filepath.Join(filepath.Dir(clean), "..", ".."))
-	if filepath.Base(bundle) != "Alzette Connect.app" {
+	info, err := os.Lstat(bundle)
+	if filepath.Ext(bundle) != ".app" || err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return "", errors.New("unexpected application bundle")
+	}
+	identifier, err := macBundleIdentifier(bundle)
+	if err != nil || identifier != "systems.alzette.Connect" {
 		return "", errors.New("unexpected application bundle")
 	}
 	return bundle, nil
+}
+
+func macBundleIdentifier(bundle string) (string, error) {
+	output, err := exec.Command(
+		"/usr/libexec/PlistBuddy",
+		"-c",
+		"Print :CFBundleIdentifier",
+		filepath.Join(bundle, "Contents", "Info.plist"),
+	).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
 }
 
 func preflightMacInstall(executable string) error {
