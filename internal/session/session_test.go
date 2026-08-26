@@ -27,6 +27,7 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 	var mu sync.Mutex
 	var challenge string
 	browserCalls, refreshCalls, revokeCalls := 0, 0, 0
+	var mintInstances, revokedInstances []string
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/.well-known/alzette-agent-configuration":
@@ -78,8 +79,20 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 			}
 			writeJSON(w, http.StatusOK, map[string]interface{}{"schema": "alzette.agent-contexts.v1", "contexts": []map[string]interface{}{{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}}}})
 		case "/api/agent/credentials":
+			var input MintInput
+			if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+				http.Error(w, "bad mint", http.StatusBadRequest)
+				return
+			}
+			mintInstances = append(mintInstances, input.ClientInstanceID)
 			writeJSON(w, http.StatusCreated, map[string]interface{}{"schema": "alzette.agent-credential.v1", "credential": map[string]interface{}{"access_token": "alz_u_01234567890123456789012345678901", "token_type": "Bearer", "expires_at": now.Add(10 * time.Minute), "scope": []string{"inference:write"}}, "context": map[string]interface{}{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}}, "gateway_base_url": server.URL + "/v1", "model_aliases": []string{"alzette-chat"}})
 		case "/api/agent/credentials/revoke":
+			var input MintInput
+			if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+				http.Error(w, "bad revoke", http.StatusBadRequest)
+				return
+			}
+			revokedInstances = append(revokedInstances, input.ClientInstanceID)
 			revokeCalls++
 			w.WriteHeader(http.StatusNoContent)
 		default:
@@ -122,6 +135,12 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 	}
 	if err := first.RevokeGrant(context.Background()); err != nil || revokeCalls != 1 {
 		t.Fatalf("revokeCalls=%d err=%v", revokeCalls, err)
+	}
+	if _, _, err := first.EnsureHumanCredential(context.Background()); err != nil {
+		t.Fatalf("relaunch credential: %v", err)
+	}
+	if len(mintInstances) != 2 || len(revokedInstances) != 1 || revokedInstances[0] != mintInstances[0] || mintInstances[1] == mintInstances[0] {
+		t.Fatalf("launch identities minted=%v revoked=%v", mintInstances, revokedInstances)
 	}
 
 	second := newSession(func(string) error { t.Fatal("resume opened browser"); return nil })
@@ -227,6 +246,43 @@ func TestRevokeDoesNotClaimUnauthorizedAsSuccess(t *testing.T) {
 	}
 	if err := value.RevokeGrant(context.Background()); !errors.Is(err, ErrSignInRequired) {
 		t.Fatalf("revoke error=%v", err)
+	}
+}
+
+func TestMintDenialRequiresCurrentContextRevalidationBeforeAccessEnded(t *testing.T) {
+	contextAvailable := true
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/agent/credentials":
+			w.WriteHeader(http.StatusForbidden)
+		case "/api/agent/contexts":
+			contexts := []map[string]interface{}{}
+			if contextAvailable {
+				contexts = append(contexts, map[string]interface{}{"membership_id": "mem_test", "organisation": "Example", "project": "Research", "environment": "Production", "relationship": "employee", "model_aliases": []string{"alzette-chat"}})
+			}
+			writeJSON(w, http.StatusOK, map[string]interface{}{"schema": "alzette.agent-contexts.v1", "contexts": contexts})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+	now := time.Now().UTC()
+	value := &Session{
+		config:      Config{HTTPClient: server.Client(), Clock: func() time.Time { return now }, Random: strings.NewReader(strings.Repeat("r", 128))},
+		metadata:    Metadata{ControlOrigin: server.URL, GatewayBaseURL: server.URL + "/v1"},
+		accessToken: "oauth-access", accessExpires: now.Add(time.Hour), clientInstance: "aci_test",
+		selected: Context{MembershipID: "mem_test", Organisation: "Example", Project: "Research", Environment: "Production", ModelAliases: []string{"alzette-chat"}},
+	}
+	if _, _, err := value.EnsureHumanCredential(context.Background()); !errors.Is(err, ErrCredentialUnavailable) {
+		t.Fatalf("current context mint denial=%v", err)
+	}
+	if selected := value.SelectedContext(); selected.MembershipID != "mem_test" || !sameStrings(selected.ModelAliases, []string{"alzette-chat"}) {
+		t.Fatalf("current context was discarded: %#v", selected)
+	}
+	contextAvailable = false
+	if _, _, err := value.EnsureHumanCredential(context.Background()); !errors.Is(err, ErrAccessRemoved) {
+		t.Fatalf("removed context mint denial=%v", err)
 	}
 }
 

@@ -22,10 +22,11 @@ import (
 )
 
 var (
-	ErrSignInRequired  = errors.New("Alzette sign-in is required")
-	ErrSignInCancelled = errors.New("Alzette sign-in was not completed")
-	ErrSignInTimeout   = errors.New("Alzette sign-in timed out")
-	ErrAccessRemoved   = errors.New("Alzette model access is unavailable")
+	ErrSignInRequired        = errors.New("Alzette sign-in is required")
+	ErrSignInCancelled       = errors.New("Alzette sign-in was not completed")
+	ErrSignInTimeout         = errors.New("Alzette sign-in timed out")
+	ErrAccessRemoved         = errors.New("Alzette model access is unavailable")
+	ErrCredentialUnavailable = errors.New("Alzette could not start a private application session")
 )
 
 type Config struct {
@@ -52,6 +53,7 @@ type Session struct {
 	contexts       []Context
 	selected       Context
 	clientInstance string
+	grantRevoked   bool
 	humanToken     string
 	humanExpires   time.Time
 }
@@ -141,6 +143,15 @@ func (s *Session) SelectedModels() []string {
 
 func (s *Session) EnsureHumanCredential(ctx context.Context) (string, time.Time, error) {
 	s.mu.Lock()
+	if s.grantRevoked {
+		next, err := opaque(s.config.Random, "aci", 16)
+		if err != nil {
+			s.mu.Unlock()
+			return "", time.Time{}, fmt.Errorf("rotate client identity: %w", err)
+		}
+		s.clientInstance = next
+		s.grantRevoked = false
+	}
 	selected := cloneContext(s.selected)
 	humanToken, humanExpires, accessExpires := s.humanToken, s.humanExpires, s.accessExpires
 	s.mu.Unlock()
@@ -177,10 +188,23 @@ func (s *Session) EnsureHumanCredential(ctx context.Context) (string, time.Time,
 	}
 	defer response.Body.Close()
 	var result mintResponse
-	if response.StatusCode == http.StatusForbidden || response.StatusCode == http.StatusUnauthorized {
+	if response.StatusCode == http.StatusUnauthorized {
 		s.mu.Lock()
 		s.humanToken, s.humanExpires = "", time.Time{}
 		s.mu.Unlock()
+		return "", time.Time{}, ErrSignInRequired
+	}
+	if response.StatusCode == http.StatusForbidden {
+		s.mu.Lock()
+		s.humanToken, s.humanExpires = "", time.Time{}
+		s.mu.Unlock()
+		// A mint denial is not by itself proof of offboarding. Re-read the
+		// employee's current contexts before showing the terminal access-ended
+		// state. If the exact membership and aliases remain present, the failure
+		// is limited to this application session and can be retried safely.
+		if err := s.loadContexts(ctx); err == nil && s.contextStillAvailable(selected) {
+			return "", time.Time{}, ErrCredentialUnavailable
+		}
 		return "", time.Time{}, ErrAccessRemoved
 	}
 	if response.StatusCode != http.StatusCreated || decodeJSON(response.Body, &result) != nil || result.Schema != "alzette.agent-credential.v1" || !validHumanToken(result.Credential.AccessToken) || !strings.EqualFold(result.Credential.TokenType, "Bearer") || !sameStrings(result.Credential.Scope, []string{"inference:write"}) {
@@ -231,7 +255,22 @@ func (s *Session) RevokeGrant(ctx context.Context) error {
 	if response.StatusCode != http.StatusNoContent {
 		return errors.New("Alzette session revocation failed")
 	}
+	s.mu.Lock()
+	s.grantRevoked = true
+	s.mu.Unlock()
 	return nil
+}
+
+func (s *Session) contextStillAvailable(expected Context) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, current := range s.contexts {
+		if current.MembershipID == expected.MembershipID && sameStrings(current.ModelAliases, expected.ModelAliases) {
+			s.selected = current
+			return true
+		}
+	}
+	return false
 }
 
 // Logout always clears the protected local refresh credential. Callers must

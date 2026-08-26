@@ -172,9 +172,14 @@ func (r *Runtime) StartLaunch(ctx context.Context, allowedInferencePaths ...stri
 		r.mu.Unlock()
 	}()
 	if _, _, err := connected.EnsureHumanCredential(ctx); err != nil {
-		if errors.Is(err, session.ErrAccessRemoved) {
+		switch {
+		case errors.Is(err, session.ErrAccessRemoved):
 			r.set(AccessRemoved, "Your company access has ended", "access_removed", nil)
-		} else {
+		case errors.Is(err, session.ErrSignInRequired):
+			r.set(SignInRequired, "Sign in again to launch an application", "sign_in_required", nil)
+		case errors.Is(err, session.ErrCredentialUnavailable):
+			r.set(Ready, "Your company models remain available; the application session did not start", "launch_session_unavailable", connected.Contexts())
+		default:
 			r.set(Offline, "Alzette Connect could not create an application session", "service_unavailable", connected.Contexts())
 		}
 		return err
