@@ -409,7 +409,12 @@ func (s *desktopService) LaunchApplication(id string) error {
 		s.setLaunch(appstate.Launch{Phase: "idle"})
 		return errors.New("The private application connection did not start")
 	}
-	connection := clientconfig.Connection{BaseURL: baseURL, Capability: capability, Models: models}
+	catalog := s.runtime.SelectedModelCatalog()
+	clientModels := make([]clientconfig.Model, 0, len(catalog))
+	for _, model := range catalog {
+		clientModels = append(clientModels, clientconfig.Model{Alias: model.Alias, DisplayName: model.DisplayName, Capabilities: append([]string(nil), model.Capabilities...), ContextWindowTokens: model.ContextWindowTokens})
+	}
+	connection := clientconfig.Connection{BaseURL: baseURL, Capability: capability, Models: models, Catalog: clientModels}
 	var process *clientconfig.Process
 	var rollback func(context.Context) error
 	var err error

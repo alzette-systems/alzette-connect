@@ -98,6 +98,8 @@ func TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack(t *testin
 	secrets := &memorySecrets{values: map[string]string{}}
 	requestConnection := connection("alp_abcdefghijklmnopqrstuvwxyz0123456789")
 	requestConnection.Models = []string{"document-review", "alzette-chat"}
+	contextWindow := int64(1_048_576)
+	requestConnection.Catalog = []Model{{Alias: "alzette-chat", DisplayName: "Alzette Chat", ContextWindowTokens: &contextWindow, Capabilities: []string{"reasoning_effort:low", "reasoning_effort:high", "reasoning_effort:max", "reasoning_effort_default:high"}}}
 	result, err := testManagerForOS(t, root, "darwin", secrets, stopped(false)).ConfigureChatGPT(context.Background(), ChatGPTRequest{
 		Connection: requestConnection, ConfigPath: configPath, ExecutablePath: executable, Version: "1.2.3",
 	})
@@ -121,11 +123,35 @@ func TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack(t *testin
 	catalog, _ := os.ReadFile(catalogPath)
 	var listing struct {
 		Models []struct {
-			Slug string `json:"slug"`
+			Slug             string  `json:"slug"`
+			BaseInstructions string  `json:"base_instructions"`
+			DisplayName      string  `json:"display_name"`
+			ContextWindow    int64   `json:"context_window"`
+			DefaultReasoning *string `json:"default_reasoning_level"`
+			ReasoningLevels  []struct {
+				Effort string `json:"effort"`
+			} `json:"supported_reasoning_levels"`
 		} `json:"models"`
 	}
 	if json.Unmarshal(catalog, &listing) != nil || len(listing.Models) != 2 || listing.Models[0].Slug != "alzette-chat" || listing.Models[1].Slug != "document-review" {
 		t.Fatalf("unexpected ChatGPT catalogue: %s", catalog)
+	}
+	for _, model := range listing.Models {
+		for _, required := range []string{model.Slug, "through Alzette", "underlying provider and provider model are not exposed", "Do not claim to be ChatGPT, Codex"} {
+			if !strings.Contains(model.BaseInstructions, required) {
+				t.Fatalf("model %q instructions missing %q: %q", model.Slug, required, model.BaseInstructions)
+			}
+		}
+	}
+	if listing.Models[0].DisplayName != "Alzette Chat" || listing.Models[0].ContextWindow != contextWindow || listing.Models[0].DefaultReasoning == nil || *listing.Models[0].DefaultReasoning != "high" {
+		t.Fatalf("Alzette Chat capability metadata was not preserved: %#v", listing.Models[0])
+	}
+	var efforts []string
+	for _, level := range listing.Models[0].ReasoningLevels {
+		efforts = append(efforts, level.Effort)
+	}
+	if strings.Join(efforts, ",") != "low,high,max" {
+		t.Fatalf("Alzette Chat reasoning levels=%v", efforts)
 	}
 	for _, required := range []string{`"additional_speed_tiers": []`, `"supports_parallel_tool_calls": false`, `"supports_search_tool": false`, `"input_modalities": [`} {
 		if !strings.Contains(string(catalog), required) {

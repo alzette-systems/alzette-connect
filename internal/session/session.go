@@ -141,6 +141,12 @@ func (s *Session) SelectedModels() []string {
 	return append([]string(nil), s.selected.ModelAliases...)
 }
 
+func (s *Session) SelectedModelCatalog() []Model {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return cloneModels(s.selected.Models)
+}
+
 func (s *Session) EnsureHumanCredential(ctx context.Context) (string, time.Time, error) {
 	s.mu.Lock()
 	if s.grantRevoked {
@@ -447,9 +453,49 @@ func contains(values []string, expected string) bool {
 	return false
 }
 
-func normalizeContext(value *Context) { sort.Strings(value.ModelAliases) }
+func normalizeContext(value *Context) {
+	sort.Strings(value.ModelAliases)
+	byAlias := make(map[string]Model, len(value.Models))
+	for _, model := range value.Models {
+		if model.Alias == "" || !contains(value.ModelAliases, model.Alias) {
+			continue
+		}
+		if model.DisplayName == "" {
+			model.DisplayName = model.Alias
+		}
+		sort.Strings(model.Capabilities)
+		byAlias[model.Alias] = cloneModel(model)
+	}
+	value.Models = make([]Model, 0, len(value.ModelAliases))
+	for _, alias := range value.ModelAliases {
+		model, ok := byAlias[alias]
+		if !ok {
+			model = Model{Alias: alias, DisplayName: alias}
+		}
+		value.Models = append(value.Models, model)
+	}
+}
+
+func cloneModel(value Model) Model {
+	value.Capabilities = append([]string(nil), value.Capabilities...)
+	if value.ContextWindowTokens != nil {
+		contextWindow := *value.ContextWindowTokens
+		value.ContextWindowTokens = &contextWindow
+	}
+	return value
+}
+
+func cloneModels(values []Model) []Model {
+	result := make([]Model, len(values))
+	for index, value := range values {
+		result[index] = cloneModel(value)
+	}
+	return result
+}
+
 func cloneContext(value Context) Context {
 	value.ModelAliases = append([]string(nil), value.ModelAliases...)
+	value.Models = cloneModels(value.Models)
 	return value
 }
 func cloneContexts(values []Context) []Context {

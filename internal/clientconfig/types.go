@@ -35,6 +35,14 @@ type Connection struct {
 	BaseURL    string
 	Capability string
 	Models     []string
+	Catalog    []Model
+}
+
+type Model struct {
+	Alias               string
+	DisplayName         string
+	Capabilities        []string
+	ContextWindowTokens *int64
 }
 
 type JanRequest struct {

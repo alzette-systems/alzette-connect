@@ -17,9 +17,9 @@ const (
 	chatGPTCatalogFilename = "alzette-connect-models.json"
 	chatGPTRestoreFilename = "chatgpt-restore.json"
 	chatGPTCapabilityEnv   = "ALZETTE_CONNECT_SESSION_KEY"
-	// The current context API returns aliases, not route capability metadata.
-	// Use a conservative adapter ceiling and make no per-model capability
-	// claim until that metadata has an evidenced server contract.
+	// Legacy servers return aliases without capability metadata. Keep a
+	// conservative fallback for those contexts; current servers provide the
+	// evidenced per-alias context window and reasoning levels.
 	chatGPTContextWindow = 16_384
 )
 
@@ -96,7 +96,7 @@ func (m *Manager) ConfigureChatGPT(ctx context.Context, request ChatGPTRequest) 
 	if err != nil {
 		return nil, err
 	}
-	afterCatalog, err := renderChatGPTCatalog(connection.Models)
+	afterCatalog, err := renderChatGPTCatalog(connection.Catalog)
 	if err != nil {
 		return nil, err
 	}
@@ -323,15 +323,21 @@ func renderChatGPTConfig(before string, connection Connection, catalogPath strin
 	return text, nil
 }
 
-func renderChatGPTCatalog(models []string) ([]byte, error) {
+func renderChatGPTCatalog(models []Model) ([]byte, error) {
 	entries := make([]map[string]any, 0, len(models))
 	for index, model := range models {
+		baseInstructions := fmt.Sprintf("You are an AI assistant accessed through Alzette using the company model alias %q. When asked which model you are, answer with that alias and say the underlying provider and provider model are not exposed in this client. Do not claim to be ChatGPT, Codex, or an Alzette-built foundation model, and do not guess the underlying provider.", model.Alias)
+		contextWindow := int64(chatGPTContextWindow)
+		if model.ContextWindowTokens != nil {
+			contextWindow = *model.ContextWindowTokens
+		}
+		reasoningLevels, defaultReasoning := chatGPTReasoningLevels(model.Capabilities)
 		entries = append(entries, map[string]any{
-			"slug":                             model,
-			"display_name":                     model,
+			"slug":                             model.Alias,
+			"display_name":                     model.DisplayName,
 			"description":                      "Company model through Alzette",
-			"default_reasoning_level":          nil,
-			"supported_reasoning_levels":       []any{},
+			"default_reasoning_level":          defaultReasoning,
+			"supported_reasoning_levels":       reasoningLevels,
 			"shell_type":                       "default",
 			"visibility":                       "list",
 			"supported_in_api":                 true,
@@ -339,7 +345,7 @@ func renderChatGPTCatalog(models []string) ([]byte, error) {
 			"additional_speed_tiers":           []any{},
 			"availability_nux":                 nil,
 			"upgrade":                          nil,
-			"base_instructions":                "You are a helpful assistant using the employee's company-approved Alzette model access.",
+			"base_instructions":                baseInstructions,
 			"model_messages":                   nil,
 			"supports_reasoning_summaries":     false,
 			"default_reasoning_summary":        "auto",
@@ -349,8 +355,8 @@ func renderChatGPTCatalog(models []string) ([]byte, error) {
 			"web_search_tool_type":             "text",
 			"supports_parallel_tool_calls":     false,
 			"supports_image_detail_original":   false,
-			"context_window":                   chatGPTContextWindow,
-			"max_context_window":               chatGPTContextWindow,
+			"context_window":                   contextWindow,
+			"max_context_window":               contextWindow,
 			"auto_compact_token_limit":         nil,
 			"effective_context_window_percent": 95,
 			"truncation_policy":                map[string]any{"mode": "bytes", "limit": 10_000},
@@ -364,6 +370,48 @@ func renderChatGPTCatalog(models []string) ([]byte, error) {
 		return nil, err
 	}
 	return append(data, '\n'), nil
+}
+
+func chatGPTReasoningLevels(capabilities []string) ([]any, any) {
+	descriptions := map[string]string{
+		"none":   "Fastest responses without extended reasoning",
+		"low":    "Fast responses with lighter reasoning",
+		"medium": "Balanced reasoning for everyday work",
+		"high":   "Deeper reasoning for complex work",
+		"xhigh":  "Very deep reasoning for difficult work",
+		"max":    "Maximum reasoning depth for the hardest work",
+	}
+	allowed := map[string]bool{}
+	defaultLevel := ""
+	for _, capability := range capabilities {
+		if strings.HasPrefix(capability, "reasoning_effort:") {
+			level := strings.TrimPrefix(capability, "reasoning_effort:")
+			if _, ok := descriptions[level]; ok {
+				allowed[level] = true
+			}
+		}
+		if strings.HasPrefix(capability, "reasoning_effort_default:") {
+			defaultLevel = strings.TrimPrefix(capability, "reasoning_effort_default:")
+		}
+	}
+	levels := make([]any, 0, len(allowed))
+	for _, level := range []string{"none", "low", "medium", "high", "xhigh", "max"} {
+		if allowed[level] {
+			levels = append(levels, map[string]any{"effort": level, "description": descriptions[level]})
+		}
+	}
+	if len(levels) == 0 {
+		return []any{}, nil
+	}
+	if !allowed[defaultLevel] {
+		for _, preferred := range []string{"medium", "high", "low", "none", "xhigh", "max"} {
+			if allowed[preferred] {
+				defaultLevel = preferred
+				break
+			}
+		}
+	}
+	return levels, defaultLevel
 }
 
 // ObserveChatGPTVersion records the native application version after the

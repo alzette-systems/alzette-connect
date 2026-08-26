@@ -230,6 +230,17 @@ func (r *Runtime) ClientConnection() (baseURL, capability string, models []strin
 	return r.proxy.BaseURL(), r.proxy.Capability(), r.session.SelectedModels(), true
 }
 
+// SelectedModelCatalog returns employee-safe alias capability metadata for the
+// trusted native adapter. Provider and route identity are never part of it.
+func (r *Runtime) SelectedModelCatalog() []session.Model {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.session == nil {
+		return nil
+	}
+	return r.session.SelectedModelCatalog()
+}
+
 func (r *Runtime) Stop(ctx context.Context) error {
 	r.set(Stopping, "Stopping Alzette Connect", "", nil)
 	r.mu.Lock()

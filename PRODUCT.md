@@ -27,6 +27,7 @@ Connect is the device-side custody boundary between a human company identity and
 - Linux is a first-class build platform; when no reliable status-item host exists, the same launcher remains available as a normal window.
 - Pi, Jan, and Goose are the accepted adapter set. ChatGPT is an internal macOS adapter candidate, disabled in normal builds until a named desktop version passes the real Responses compatibility run. Windows Store integration remains future work. Claude Code is not in the current product scope.
 - Employees may have zero or more company models through group grants managed elsewhere in Alzette.
+- Connect presents company model aliases to employees, not the replaceable provider route behind an alias. Generated client instructions identify the active alias, state that the underlying provider is not exposed in that client, and must never misrepresent the assistant as ChatGPT, Codex, or an Alzette-built foundation model.
 
 ## Capabilities and Constraints
 

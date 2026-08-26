@@ -94,6 +94,44 @@ func validateConnection(connection Connection) (Connection, error) {
 	}
 	sort.Strings(models)
 	connection.Models = models
+	catalogByAlias := make(map[string]Model, len(connection.Catalog))
+	for _, model := range connection.Catalog {
+		if !seen[model.Alias] || len(model.DisplayName) > 128 || strings.ContainsAny(model.DisplayName, "\r\n\t") || len(model.Capabilities) > 64 {
+			return Connection{}, errors.New("model capability metadata is invalid")
+		}
+		if model.DisplayName == "" {
+			model.DisplayName = model.Alias
+		}
+		capabilities := make([]string, 0, len(model.Capabilities))
+		capabilitySeen := make(map[string]bool)
+		for _, capability := range model.Capabilities {
+			if capability == "" || len(capability) > 128 || strings.ContainsAny(capability, "\r\n\t") {
+				return Connection{}, errors.New("model capability metadata is invalid")
+			}
+			if !capabilitySeen[capability] {
+				capabilitySeen[capability] = true
+				capabilities = append(capabilities, capability)
+			}
+		}
+		sort.Strings(capabilities)
+		model.Capabilities = capabilities
+		if model.ContextWindowTokens != nil {
+			if *model.ContextWindowTokens < 1 || *model.ContextWindowTokens > 100_000_000 {
+				return Connection{}, errors.New("model capability metadata is invalid")
+			}
+			value := *model.ContextWindowTokens
+			model.ContextWindowTokens = &value
+		}
+		catalogByAlias[model.Alias] = model
+	}
+	connection.Catalog = make([]Model, 0, len(models))
+	for _, alias := range models {
+		model, ok := catalogByAlias[alias]
+		if !ok {
+			model = Model{Alias: alias, DisplayName: alias}
+		}
+		connection.Catalog = append(connection.Catalog, model)
+	}
 	connection.BaseURL = strings.TrimSuffix(connection.BaseURL, "/")
 	return connection, nil
 }
