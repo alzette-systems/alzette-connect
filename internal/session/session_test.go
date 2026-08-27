@@ -136,6 +136,9 @@ func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {
 	if err := first.RevokeGrant(context.Background()); err != nil || revokeCalls != 1 {
 		t.Fatalf("revokeCalls=%d err=%v", revokeCalls, err)
 	}
+	if err := first.RevokeGrant(context.Background()); err != nil || revokeCalls != 1 {
+		t.Fatalf("repeat revokeCalls=%d err=%v", revokeCalls, err)
+	}
 	if _, _, err := first.EnsureHumanCredential(context.Background()); err != nil {
 		t.Fatalf("relaunch credential: %v", err)
 	}

@@ -173,6 +173,54 @@ func TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack(t *testin
 	}
 }
 
+func TestRecoverChatGPTRestoresAfterManagerRestart(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	before := "model = \"personal\"\nmodel_provider = \"openai\"\n"
+	mustWrite(t, configPath, []byte(before), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	secrets := &memorySecrets{values: map[string]string{}}
+	first := testManagerForOS(t, root, "darwin", secrets, stopped(false))
+	if _, err := first.ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	second := testManagerForOS(t, root, "darwin", secrets, stopped(false))
+	recovered, err := second.RecoverChatGPT(context.Background(), executable)
+	if err != nil || !recovered {
+		t.Fatalf("recovered=%t err=%v", recovered, err)
+	}
+	restored, err := os.ReadFile(configPath)
+	if err != nil || string(restored) != before {
+		t.Fatalf("restored=%q err=%v", restored, err)
+	}
+	if recovered, err = second.RecoverChatGPT(context.Background(), executable); err != nil || recovered {
+		t.Fatalf("second recovery=%t err=%v", recovered, err)
+	}
+}
+
+func TestRecoverChatGPTRequiresApplicationToBeClosed(t *testing.T) {
+	root := canonicalTempRoot(t)
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	mustWrite(t, configPath, []byte("model = \"personal\"\n"), 0o600)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	secrets := &memorySecrets{values: map[string]string{}}
+	manager := testManagerForOS(t, root, "darwin", secrets, stopped(false))
+	if _, err := manager.ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"), ConfigPath: configPath, ExecutablePath: executable,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	manager.running = stopped(true)
+	if recovered, err := manager.RecoverChatGPT(context.Background(), executable); recovered || !errors.Is(err, ErrClientRunning) {
+		t.Fatalf("recovered=%t err=%v", recovered, err)
+	}
+}
+
 func TestConfigureChatGPTRejectsUnownedProvider(t *testing.T) {
 	root := canonicalTempRoot(t)
 	configPath := filepath.Join(root, ".codex", "config.toml")

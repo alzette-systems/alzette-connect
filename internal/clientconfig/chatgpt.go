@@ -120,6 +120,25 @@ func (m *Manager) ConfigureChatGPT(ctx context.Context, request ChatGPTRequest) 
 	return result, nil
 }
 
+// RecoverChatGPT restores a managed Codex profile from durable recovery
+// evidence after Connect itself restarted or otherwise lost its in-memory
+// launch handle. The application must be closed before its configuration is
+// changed.
+func (m *Manager) RecoverChatGPT(ctx context.Context, executablePath string) (bool, error) {
+	configPath := filepath.Join(m.homeDir, ".codex", "config.toml")
+	if !m.hasChatGPTRecoveryEvidence(configPath) {
+		return false, nil
+	}
+	if err := m.requireStopped(ctx, executablePath); err != nil {
+		return false, err
+	}
+	catalogPath := filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)
+	if err := m.restoreChatGPT(ctx, configPath, catalogPath); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func chatGPTConfigIsManaged(config chatGPTConfig) bool {
 	profile, _ := config.string("profile")
 	provider, _ := config.string("model_provider")

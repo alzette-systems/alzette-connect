@@ -235,12 +235,13 @@ func (s *Session) RevokeGrant(ctx context.Context) error {
 	selected := s.selected
 	accessToken := s.accessToken
 	instance := s.clientInstance
+	alreadyRevoked := s.grantRevoked
 	// A disconnected local application must never reuse a prior human token,
 	// even when remote revocation cannot be confirmed. The server remains the
 	// authority for the outstanding grant; a later launch must mint again.
 	s.humanToken, s.humanExpires = "", time.Time{}
 	s.mu.Unlock()
-	if selected.MembershipID == "" || accessToken == "" {
+	if alreadyRevoked || selected.MembershipID == "" || accessToken == "" {
 		return nil
 	}
 	body, _ := json.Marshal(MintInput{ClientInstanceID: instance, MembershipID: selected.MembershipID})

@@ -572,6 +572,22 @@ func (s *desktopService) disconnectLocked(ctx context.Context) error {
 	s.activeRollback = nil
 	s.launchMu.Unlock()
 	if process == nil {
+		if s.clientConfig != nil && s.clients != nil && s.clients.chatGPTExecutable != "" {
+			recovered, err := s.clientConfig.RecoverChatGPT(ctx, s.clients.chatGPTExecutable)
+			if err != nil {
+				retry := func(retryCtx context.Context) error {
+					_, retryErr := s.clientConfig.RecoverChatGPT(retryCtx, s.clients.chatGPTExecutable)
+					return retryErr
+				}
+				s.rememberPendingCleanup(retry, false)
+				s.setLaunch(appstate.Launch{Phase: "recovery", ApplicationID: "chatgpt", Application: "ChatGPT", Message: "Close ChatGPT, then restore its original Codex profile", CleanupPending: true, LocalClosed: true, GrantStatus: "confirmed", ProfileStatus: "needs_review"})
+				return friendlyClientError("ChatGPT", err)
+			}
+			if recovered {
+				s.clearPendingCleanup()
+				s.setLaunch(appstate.Launch{Phase: "idle"})
+			}
+		}
 		return nil
 	}
 	s.setLaunch(appstate.Launch{Phase: "disconnecting", ApplicationID: applicationID, Application: applicationName, Message: "Closing the private connection"})
