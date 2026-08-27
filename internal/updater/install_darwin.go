@@ -22,12 +22,16 @@ func startInstall(assetPath, expectedVersion string) error {
 	if err := preflightMacInstall(executable); err != nil {
 		return err
 	}
+	currentApp, err := macBundleForExecutable(executable)
+	if err != nil {
+		return err
+	}
 	directory, err := os.MkdirTemp("", "alzette-connect-helper-")
 	if err != nil {
 		return errors.New("prepare update helper")
 	}
-	helper := filepath.Join(directory, "alzette-connect-updater")
-	if err := copyRegularFile(executable, helper, 0o700); err != nil {
+	helper, err := prepareMacHelper(currentApp, directory)
+	if err != nil {
 		_ = os.RemoveAll(directory)
 		return errors.New("prepare update helper")
 	}
@@ -40,6 +44,20 @@ func startInstall(assetPath, expectedVersion string) error {
 		return errors.New("start update helper")
 	}
 	return command.Process.Release()
+}
+
+// prepareMacHelper preserves the complete signed bundle. A Developer ID signed
+// executable can depend on its bundle's sealed Info.plist, so copying only the
+// Mach-O binary makes macOS reject the helper before it can apply the update.
+func prepareMacHelper(sourceApp, directory string) (string, error) {
+	if _, err := verifyMacBundleExecutable(sourceApp); err != nil {
+		return "", err
+	}
+	helperApp := filepath.Join(directory, filepath.Base(sourceApp))
+	if output, err := exec.Command("/usr/bin/ditto", sourceApp, helperApp).CombinedOutput(); err != nil || len(output) > 4096 {
+		return "", errors.New("copy update helper")
+	}
+	return verifyMacBundleExecutable(helperApp)
 }
 
 func applyUpdate(rawPID, assetPath, executable, expectedVersion string) error {
@@ -85,27 +103,34 @@ func applyUpdate(rawPID, assetPath, executable, expectedVersion string) error {
 }
 
 func verifyMacBundle(path, expectedVersion string) error {
-	info, err := os.Lstat(path)
-	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return ErrUnsafeRelease
-	}
-	command := exec.Command("/usr/bin/codesign", "--verify", "--deep", "--strict", path)
-	if err := command.Run(); err != nil {
-		return errors.New("the update application signature is invalid")
-	}
-	identifier, err := macBundleIdentifier(path)
-	if err != nil || identifier != "systems.alzette.Connect" {
-		return ErrUnsafeRelease
+	if _, err := verifyMacBundleExecutable(path); err != nil {
+		return err
 	}
 	output, err := exec.Command("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleShortVersionString", filepath.Join(path, "Contents", "Info.plist")).Output()
 	if err != nil || normalizeVersion(strings.TrimSpace(string(output))) != expectedVersion {
 		return errors.New("the update application version is invalid")
 	}
+	return nil
+}
+
+func verifyMacBundleExecutable(path string) (string, error) {
+	info, err := os.Lstat(path)
+	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return "", ErrUnsafeRelease
+	}
+	command := exec.Command("/usr/bin/codesign", "--verify", "--deep", "--strict", path)
+	if err := command.Run(); err != nil {
+		return "", errors.New("the update application signature is invalid")
+	}
+	identifier, err := macBundleIdentifier(path)
+	if err != nil || identifier != "systems.alzette.Connect" {
+		return "", ErrUnsafeRelease
+	}
 	binary := filepath.Join(path, "Contents", "MacOS", "alzette-connect")
 	if info, err := os.Lstat(binary); err != nil || !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		return ErrUnsafeRelease
+		return "", ErrUnsafeRelease
 	}
-	return nil
+	return binary, nil
 }
 
 func macBundleForExecutable(executable string) (string, error) {
@@ -177,26 +202,4 @@ func waitForProcess(pid int, timeout time.Duration) error {
 		time.Sleep(200 * time.Millisecond)
 	}
 	return errors.New("Alzette Connect did not close in time for the update")
-}
-
-func copyRegularFile(source, target string, mode os.FileMode) error {
-	input, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-	defer input.Close()
-	info, err := input.Stat()
-	if err != nil || !info.Mode().IsRegular() {
-		return ErrUnsafeRelease
-	}
-	output, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
-	if err != nil {
-		return err
-	}
-	_, copyErr := output.ReadFrom(input)
-	closeErr := output.Close()
-	if copyErr != nil {
-		return copyErr
-	}
-	return closeErr
 }

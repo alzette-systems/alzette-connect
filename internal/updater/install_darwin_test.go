@@ -4,10 +4,45 @@ package updater
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestPrepareMacHelperPreservesExecutableBundleSignature(t *testing.T) {
+	sourceRoot := t.TempDir()
+	sourceExecutable := testMacExecutable(t, sourceRoot, "Alzette Connect.app", "systems.alzette.Connect")
+	testExecutable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents, err := os.ReadFile(testExecutable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(sourceExecutable, contents, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	sourceApp := filepath.Join(sourceRoot, "Alzette Connect.app")
+	if output, err := exec.Command("/usr/bin/codesign", "--force", "--deep", "--sign", "-", sourceApp).CombinedOutput(); err != nil {
+		t.Fatalf("sign test bundle: %v: %s", err, output)
+	}
+
+	helper, err := prepareMacHelper(sourceApp, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(helper, "/Alzette Connect.app/Contents/MacOS/alzette-connect") {
+		t.Fatalf("helper is not inside the signed application bundle: %s", helper)
+	}
+	if output, err := exec.Command("/usr/bin/codesign", "--verify", "--deep", "--strict", filepath.Join(helper, "..", "..", "..")).CombinedOutput(); err != nil {
+		t.Fatalf("copied helper signature is invalid: %v: %s", err, output)
+	}
+	if output, err := exec.Command(helper, "-test.run=^$").CombinedOutput(); err != nil {
+		t.Fatalf("macOS rejected the copied helper executable: %v: %s", err, output)
+	}
+}
 
 func TestMacInstallPreflightAcceptsWritableApplicationFolder(t *testing.T) {
 	applications := t.TempDir()
