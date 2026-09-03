@@ -293,8 +293,13 @@ func assetSuffixForVersion(operatingSystem, architecture, version string) (strin
 		return "", ErrUnsafeRelease
 	}
 	arch := map[string]string{"amd64": "x64", "arm64": "arm64"}[architecture]
-	if operatingSystem == "darwin" && arch != "" && len(parsed.pre) == 0 {
-		return "-macOS-" + arch + ".zip", nil
+	if arch != "" && len(parsed.pre) == 0 {
+		switch operatingSystem {
+		case "darwin":
+			return "-macOS-" + arch + ".zip", nil
+		case "windows":
+			return "-windows-" + arch + ".exe", nil
+		}
 	}
 	return assetSuffix(operatingSystem, architecture)
 }

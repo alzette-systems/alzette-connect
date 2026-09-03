@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ticruz38/alzette-connect/internal/mackeychain"
+	"github.com/alzette-systems/alzette-connect/internal/mackeychain"
 )
 
 const darwinService = "com.alzette.connect.refresh"

@@ -103,6 +103,24 @@ func TestStableMacChecksSignedReleaseAndIgnoresPreview(t *testing.T) {
 	}
 }
 
+func TestStableWindowsUsesSignedInstallerName(t *testing.T) {
+	suffix, err := assetSuffixForVersion("windows", "amd64", "0.3.12")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if suffix != "-windows-x64.exe" {
+		t.Fatalf("suffix=%q, want signed stable Windows suffix", suffix)
+	}
+
+	previewSuffix, err := assetSuffixForVersion("windows", "amd64", "0.3.12-demo.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if previewSuffix != "-windows-x64-unsigned-demo.exe" {
+		t.Fatalf("preview suffix=%q, want explicitly unsigned demo suffix", previewSuffix)
+	}
+}
+
 func TestDownloadRejectsTamperedContent(t *testing.T) {
 	want := sha256.Sum256([]byte("expected package"))
 	tampered := []byte("tampered package")

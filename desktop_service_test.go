@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/appstate"
+	"github.com/alzette-systems/alzette-connect/internal/appstate"
 )
 
 func TestPresentationStateUsesSelectedContextAndContainsNoConnectionSecret(t *testing.T) {

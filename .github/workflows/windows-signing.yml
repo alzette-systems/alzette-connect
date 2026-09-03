@@ -1,0 +1,156 @@
+name: SignPath Windows Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable release version to build and sign (for example 0.3.12)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signpath-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    name: Build and sign Windows x64
+    runs-on: windows-2025
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      ALZETTE_CONNECT_VERSION: ${{ inputs.version }}
+      ALZETTE_CONNECT_CHATGPT_CANDIDATE: 'true'
+    steps:
+      - name: Validate configuration and version
+        env:
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+        run: |
+          [[ "$ALZETTE_CONNECT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          : "${SIGNPATH_ORGANIZATION_ID:?set the SIGNPATH_ORGANIZATION_ID repository variable after project approval}"
+
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Windows installer tooling
+        shell: pwsh
+        run: choco install nsis --yes --no-progress
+
+      - name: Install pinned Wails CLI
+        run: scripts/install-wails.sh
+
+      - name: Verify source and tests
+        run: scripts/verify.sh
+
+      - name: Build application executable
+        run: scripts/build-smoke.sh
+
+      - name: Upload unsigned application signing input
+        id: upload-application
+        uses: actions/upload-artifact@v7
+        with:
+          name: alzette-connect-windows-application-signing-input
+          path: bin/alzette-connect.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign application executable
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: alzette-connect
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: authenticode-executable
+          github-artifact-id: ${{ steps.upload-application.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-application
+
+      - name: Install signed application into package input
+        shell: pwsh
+        run: |
+          $application = Get-ChildItem -LiteralPath signed-application -Recurse -Filter 'alzette-connect.exe' | Select-Object -First 1
+          if (-not $application) {
+            throw 'SignPath did not return alzette-connect.exe'
+          }
+          Copy-Item -LiteralPath $application.FullName -Destination bin/alzette-connect.exe -Force
+
+      - name: Verify application signature
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature -LiteralPath bin/alzette-connect.exe
+          if ($signature.Status -ne 'Valid') {
+            throw "Application signature status is $($signature.Status): $($signature.StatusMessage)"
+          }
+          $signature | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+
+      - name: Build installer around signed application
+        run: scripts/package-windows-release.sh --from-signed-build
+
+      - name: Upload unsigned installer signing input
+        id: upload-installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: alzette-connect-windows-installer-signing-input
+          path: dist/Alzette-Connect-*-windows-x64.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign installer
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: alzette-connect
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: authenticode-executable
+          github-artifact-id: ${{ steps.upload-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-installer
+
+      - name: Verify installer signature and checksum
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -LiteralPath signed-installer -Recurse -Filter '*.exe' | Select-Object -First 1
+          if (-not $installer) {
+            throw 'SignPath did not return the Windows installer'
+          }
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+          if ($signature.Status -ne 'Valid') {
+            throw "Installer signature status is $($signature.Status): $($signature.StatusMessage)"
+          }
+          $signature | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+          $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content -NoNewline -Encoding ascii "$($installer.FullName).sha256"
+
+      - name: Upload signed release candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: alzette-connect-windows-x64-signed
+          path: |
+            signed-installer/Alzette-Connect-*.exe
+            signed-installer/Alzette-Connect-*.exe.sha256
+          if-no-files-found: error
+          retention-days: 30

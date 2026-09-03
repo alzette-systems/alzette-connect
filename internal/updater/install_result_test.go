@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -21,7 +22,9 @@ func TestInstallFailureIsConsumedOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
+	// Windows protects the user configuration directory with ACLs and does not
+	// preserve Unix permission bits reported by FileMode.
+	if runtime.GOOS != "windows" && info.Mode().Perm() != 0o600 {
 		t.Fatalf("result permissions=%o", info.Mode().Perm())
 	}
 	failure, ok := ConsumeInstallFailure()

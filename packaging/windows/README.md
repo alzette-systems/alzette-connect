@@ -23,6 +23,15 @@ Jan/Goose configuration, or enable startup without an explicit in-application
 choice. Uninstall removes program files and registered shortcuts but preserves
 user configuration unless the user separately requests its deletion.
 
-The repository contains no PFX, certificate password, Azure signing token, or
-timestamping credential. CI therefore performs an unsigned build/package smoke
-only and makes no SmartScreen or publisher-reputation claim.
+Production Windows releases use the public repository's SignPath workflow.
+Free code signing is provided by SignPath.io with a certificate issued to
+SignPath Foundation. The workflow first signs the application executable,
+builds the NSIS installer around that signed executable, and then signs and
+timestamps the final installer. SignPath origin verification binds both
+requests to the public GitHub build.
+
+The repository contains no PFX, certificate password, signing key, or
+timestamping credential. The SignPath API token is a GitHub Actions secret;
+public metadata is stored as repository variables. Until the SignPath project
+is approved and clean-machine acceptance is recorded, CI artifacts make no
+SmartScreen or publisher-reputation claim.

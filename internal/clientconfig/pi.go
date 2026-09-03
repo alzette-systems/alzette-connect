@@ -22,7 +22,9 @@ func QualifyPi(ctx context.Context, executable string) (string, error) {
 	if !filepath.IsAbs(executable) {
 		return "", ErrUnsafePath
 	}
-	check, cancel := context.WithTimeout(ctx, 3*time.Second)
+	// Race-instrumented and cold-started client binaries can take longer than
+	// three seconds to print their version on CI and slower Windows machines.
+	check, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	command := exec.CommandContext(check, executable, "--version")
 	command.Env = launchEnvironment(os.Environ())

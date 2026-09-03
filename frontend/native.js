@@ -15,7 +15,7 @@ import {
   SignOut,
   InstallUpdate,
   SetWindowMode,
-} from "./bindings/github.com/ticruz38/alzette-connect/desktopservice.js";
+} from "./bindings/github.com/alzette-systems/alzette-connect/desktopservice.js";
 
 function present(snapshot) {
   const mapped = window.AlzetteConnect?.mapRuntimeSnapshot(snapshot);

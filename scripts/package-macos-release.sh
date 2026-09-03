@@ -52,6 +52,8 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 install -m 0755 "$binary" "$app/Contents/MacOS/alzette-connect"
 install -m 0644 build/darwin/Info.plist "$app/Contents/Info.plist"
 install -m 0644 "$stage/icons.icns" "$app/Contents/Resources/icons.icns"
+install -m 0644 LICENSE "$app/Contents/Resources/LICENSE"
+install -m 0644 NOTICE "$app/Contents/Resources/NOTICE"
 install -m 0644 THIRD_PARTY_NOTICES.md \
   "$app/Contents/Resources/THIRD_PARTY_NOTICES.md"
 

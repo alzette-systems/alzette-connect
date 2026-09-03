@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/appstate"
-	"github.com/ticruz38/alzette-connect/internal/credentialstore"
-	connectplatform "github.com/ticruz38/alzette-connect/internal/platform"
+	"github.com/alzette-systems/alzette-connect/internal/appstate"
+	"github.com/alzette-systems/alzette-connect/internal/credentialstore"
+	connectplatform "github.com/alzette-systems/alzette-connect/internal/platform"
 )
 
 func main() {

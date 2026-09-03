@@ -4,6 +4,18 @@ Alzette Connect is the small desktop launcher that lets an invited employee use 
 
 The repository is intentionally separate from the Alzette server. The desktop shell is Wails v3 with a Go security core and a semantic HTML/CSS/vanilla-JavaScript interface.
 
+## Open-source scope
+
+Alzette Connect is open-source software licensed under the
+[Apache License 2.0](LICENSE). The license covers this desktop client and its
+release automation. It does not cover the separately operated Alzette website,
+identity service, inference platform, model infrastructure, or customer
+administration services.
+
+See the [privacy notice](docs/PRIVACY.md) for the desktop application's network
+and data behavior and the [code signing policy](docs/CODE_SIGNING_POLICY.md) for
+the Windows release trust process.
+
 ## Employee demo flow
 
 1. Install the current internal macOS demo package from the controlled release channel.
@@ -40,6 +52,13 @@ The current downloads are intentionally named `unsigned-demo`: macOS receives an
 The unsigned internal workflow and signed macOS 0.3 acceptance channel enable the ChatGPT adapter candidate so it can complete named macOS acceptance. Normal local builds keep that adapter disabled unless `ALZETTE_CONNECT_CHATGPT_CANDIDATE=true` is supplied at build time. Even in a candidate build, the row remains **Verify at launch**; a process start never turns unproven native compatibility into **Ready**.
 
 Once this updater-enabled build is installed, use **Diagnostics and updates**, **Check for Updates…** in the tray menu, or the native menu. Connect accepts only a newer prerelease from the pinned `alzette-systems/alzette-connect` repository, downloads the exact package for the current OS/architecture, and verifies the release asset's SHA-256 digest before opening it. macOS and Windows close, replace/install, and reopen Connect; Linux opens the verified `.deb` in the system package installer. Because the previous build did not contain an updater, this release must be installed manually once.
+
+### Code signing policy
+
+Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+The maintainer roles, origin-verification rules, signed-artifact boundary, and
+privacy disclosure are defined in the project's
+[code signing policy](docs/CODE_SIGNING_POLICY.md).
 
 ## Developer quick start
 

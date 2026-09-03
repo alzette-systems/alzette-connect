@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -42,7 +43,7 @@ func TestQualifyPiRequiresTheNamedRelease(t *testing.T) {
 	}
 	pi := filepath.Join(canonicalTempRoot(t), "pi-test-"+PiSupportedVersion+extension)
 	mustWrite(t, pi, contents, 0o700)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	version, err := QualifyPi(ctx, pi)
 	if err != nil || version != PiSupportedVersion {
@@ -318,7 +319,7 @@ func TestConfigureChatGPTRecoversPreRestoreStateRelease(t *testing.T) {
 	configPath := filepath.Join(root, ".codex", "config.toml")
 	before := []byte("model = \"personal\"\n")
 	mustWrite(t, configPath+".alzette-connect.bak", before, 0o600)
-	legacyManaged := "model = \"company-chat\"\nmodel_provider = \"alzette-connect\"\nmodel_catalog_json = \"" + filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename) + "\"\n\n[model_providers.alzette-connect]\nname = \"Alzette\"\nbase_url = \"http://127.0.0.1:4242/v1/\"\nenv_key = \"ALZETTE_CONNECT_SESSION_KEY\"\nwire_api = \"responses\"\nruntime_default = true\n"
+	legacyManaged := "model = \"company-chat\"\nmodel_provider = \"alzette-connect\"\nmodel_catalog_json = " + strconv.Quote(filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)) + "\n\n[model_providers.alzette-connect]\nname = \"Alzette\"\nbase_url = \"http://127.0.0.1:4242/v1/\"\nenv_key = \"ALZETTE_CONNECT_SESSION_KEY\"\nwire_api = \"responses\"\nruntime_default = true\n"
 	mustWrite(t, configPath, []byte(legacyManaged), 0o600)
 	executable := filepath.Join(root, "ChatGPT")
 	mustWrite(t, executable, []byte("app"), 0o700)

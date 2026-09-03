@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/credentialstore"
+	"github.com/alzette-systems/alzette-connect/internal/credentialstore"
 )
 
 func TestBrowserLoginResumeContextMintAndRevoke(t *testing.T) {

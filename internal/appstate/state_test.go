@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/credentialstore"
-	"github.com/ticruz38/alzette-connect/internal/session"
+	"github.com/alzette-systems/alzette-connect/internal/credentialstore"
+	"github.com/alzette-systems/alzette-connect/internal/session"
 )
 
 func TestSnapshotIsCopiedAndContainsNoCredentialField(t *testing.T) {

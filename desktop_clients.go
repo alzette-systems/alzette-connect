@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ticruz38/alzette-connect/internal/appstate"
-	"github.com/ticruz38/alzette-connect/internal/clientconfig"
+	"github.com/alzette-systems/alzette-connect/internal/appstate"
+	"github.com/alzette-systems/alzette-connect/internal/clientconfig"
 )
 
 type desktopClients struct {

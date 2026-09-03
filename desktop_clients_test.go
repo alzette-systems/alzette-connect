@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ticruz38/alzette-connect/internal/clientconfig"
+	"github.com/alzette-systems/alzette-connect/internal/clientconfig"
 )
 
 func TestDiscoverDesktopClientsAcceptsOnlyExistingAbsoluteRegularOverrides(t *testing.T) {

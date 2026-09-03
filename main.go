@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/appstate"
-	"github.com/ticruz38/alzette-connect/internal/clientconfig"
-	"github.com/ticruz38/alzette-connect/internal/updater"
+	"github.com/alzette-systems/alzette-connect/internal/appstate"
+	"github.com/alzette-systems/alzette-connect/internal/clientconfig"
+	"github.com/alzette-systems/alzette-connect/internal/updater"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 

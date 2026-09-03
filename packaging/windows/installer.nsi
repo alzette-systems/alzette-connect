@@ -13,8 +13,11 @@ SetCompressor /SOLID lzma
 !ifndef APP_ICON
   !error "APP_ICON is required"
 !endif
-!ifndef NOTICE_FILE
-  !error "NOTICE_FILE is required"
+!ifndef LICENSE_FILE
+  !error "LICENSE_FILE is required"
+!endif
+!ifndef ATTRIBUTION_NOTICE_FILE
+  !error "ATTRIBUTION_NOTICE_FILE is required"
 !endif
 !ifndef THIRD_PARTY_NOTICES_FILE
   !error "THIRD_PARTY_NOTICES_FILE is required"
@@ -47,7 +50,11 @@ ShowUninstDetails show
 Section "Alzette Connect" SEC_APP
   SetOutPath "$INSTDIR"
   File /oname=alzette-connect.exe "${APP_BINARY}"
-  File /oname=UNSIGNED-DEMO.txt "${NOTICE_FILE}"
+  !ifdef DEMO_NOTICE_FILE
+    File /oname=UNSIGNED-DEMO.txt "${DEMO_NOTICE_FILE}"
+  !endif
+  File /oname=LICENSE.txt "${LICENSE_FILE}"
+  File /oname=NOTICE.txt "${ATTRIBUTION_NOTICE_FILE}"
   File /oname=THIRD_PARTY_NOTICES.md "${THIRD_PARTY_NOTICES_FILE}"
   File /oname=alzette-connect.ico "${APP_ICON}"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -68,7 +75,11 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\Alzette Connect\Alzette Connect.lnk"
   RMDir "$SMPROGRAMS\Alzette Connect"
   Delete "$INSTDIR\alzette-connect.exe"
-  Delete "$INSTDIR\UNSIGNED-DEMO.txt"
+  !ifdef DEMO_NOTICE_FILE
+    Delete "$INSTDIR\UNSIGNED-DEMO.txt"
+  !endif
+  Delete "$INSTDIR\LICENSE.txt"
+  Delete "$INSTDIR\NOTICE.txt"
   Delete "$INSTDIR\THIRD_PARTY_NOTICES.md"
   Delete "$INSTDIR\alzette-connect.ico"
   Delete "$INSTDIR\Uninstall.exe"

@@ -33,6 +33,8 @@ trap 'rm -rf -- "$stage"' EXIT
 payload="$stage/alzette-connect-$target-$arch"
 mkdir -p "$payload/bin"
 cp "$binary" "$payload/bin/"
+cp LICENSE "$payload/LICENSE"
+cp NOTICE "$payload/NOTICE"
 cp THIRD_PARTY_NOTICES.md "$payload/THIRD_PARTY_NOTICES.md"
 
 if [[ "$target" == "linux" ]]; then

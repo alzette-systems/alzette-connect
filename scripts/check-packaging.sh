@@ -5,6 +5,8 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 required=(
+  LICENSE
+  NOTICE
   THIRD_PARTY_NOTICES.md
   packaging/README.md
   packaging/icons/alzette-connect.svg
@@ -14,11 +16,16 @@ required=(
   packaging/macos/entitlements.plist
   packaging/windows/README.md
   packaging/windows/installer.nsi
+  .signpath/artifact-configuration.xml
   scripts/package-download.sh
   scripts/package-macos-release.sh
+  scripts/package-windows-release.sh
   .github/workflows/desktop-downloads.yml
   .github/workflows/macos-release.yml
+  .github/workflows/windows-signing.yml
   docs/BUILDING.md
+  docs/CODE_SIGNING_POLICY.md
+  docs/PRIVACY.md
   docs/RELEASING.md
   docs/SUPPORTED_PLATFORMS.md
   docs/QA_ACCEPTANCE.md
@@ -31,14 +38,21 @@ for path in "${required[@]}"; do
   fi
 done
 
-for packaging_source in scripts/package-current.sh scripts/package-download.sh scripts/package-macos-release.sh packaging/windows/installer.nsi; do
+for packaging_source in scripts/package-current.sh scripts/package-download.sh scripts/package-macos-release.sh scripts/package-windows-release.sh packaging/windows/installer.nsi; do
+  if ! grep -Fq 'LICENSE' "$packaging_source" || ! grep -Fq 'NOTICE' "$packaging_source"; then
+    echo "project license and attribution notice are not included by: $packaging_source" >&2
+    exit 1
+  fi
+done
+
+for packaging_source in scripts/package-current.sh scripts/package-download.sh scripts/package-macos-release.sh scripts/package-windows-release.sh packaging/windows/installer.nsi; do
   if ! grep -Fq 'THIRD_PARTY_NOTICES' "$packaging_source"; then
     echo "third-party notices are not included by: $packaging_source" >&2
     exit 1
   fi
 done
 
-for executable in scripts/package-download.sh scripts/package-macos-release.sh; do
+for executable in scripts/package-download.sh scripts/package-macos-release.sh scripts/package-windows-release.sh; do
   if [[ ! -x "$executable" ]]; then
     echo "packaging script is not executable: $executable" >&2
     exit 1
@@ -47,6 +61,7 @@ done
 
 bash -n scripts/package-download.sh
 bash -n scripts/package-macos-release.sh
+bash -n scripts/package-windows-release.sh
 
 if ! grep -Fq "ALZETTE_CONNECT_CHATGPT_CANDIDATE: 'true'" .github/workflows/macos-release.yml; then
   echo "signed macOS acceptance releases must enable the ChatGPT adapter" >&2

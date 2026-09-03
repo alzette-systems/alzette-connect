@@ -1,4 +1,4 @@
-module github.com/ticruz38/alzette-connect
+module github.com/alzette-systems/alzette-connect
 
 go 1.25.0
 

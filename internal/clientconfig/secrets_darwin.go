@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ticruz38/alzette-connect/internal/mackeychain"
+	"github.com/alzette-systems/alzette-connect/internal/mackeychain"
 )
 
 type darwinSecrets struct{}

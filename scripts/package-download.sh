@@ -74,6 +74,8 @@ package_macos() {
   cp build/darwin/Info.plist "$app/Contents/Info.plist"
   cp "$stage/icons.icns" "$app/Contents/Resources/icons.icns"
   cp "$notice" "$app/Contents/Resources/UNSIGNED-DEMO.txt"
+  cp LICENSE "$app/Contents/Resources/LICENSE"
+  cp NOTICE "$app/Contents/Resources/NOTICE"
   cp THIRD_PARTY_NOTICES.md "$app/Contents/Resources/THIRD_PARTY_NOTICES.md"
   marketing_version="${version%%-*}"
   marketing_version="${marketing_version%%+*}"
@@ -107,7 +109,9 @@ package_windows() {
     -DAPP_VERSION="$version" \
     -DAPP_BINARY="$(cygpath -w "$repo_root/$binary")" \
     -DAPP_ICON="$(cygpath -w "$stage/alzette-connect.ico")" \
-    -DNOTICE_FILE="$(cygpath -w "$notice")" \
+    -DDEMO_NOTICE_FILE="$(cygpath -w "$notice")" \
+    -DLICENSE_FILE="$(cygpath -w "$repo_root/LICENSE")" \
+    -DATTRIBUTION_NOTICE_FILE="$(cygpath -w "$repo_root/NOTICE")" \
     -DTHIRD_PARTY_NOTICES_FILE="$(cygpath -w "$repo_root/THIRD_PARTY_NOTICES.md")" \
     -DOUTPUT_FILE="$(cygpath -w "$output")" \
     packaging/windows/installer.nsi
@@ -131,6 +135,8 @@ package_linux() {
   install -m 0644 build/appicon.png \
     "$root/usr/share/icons/hicolor/1024x1024/apps/systems.alzette.Connect.png"
   install -m 0644 "$notice" "$root/usr/share/doc/alzette-connect/UNSIGNED-DEMO.txt"
+  install -m 0644 LICENSE "$root/usr/share/doc/alzette-connect/LICENSE"
+  install -m 0644 NOTICE "$root/usr/share/doc/alzette-connect/NOTICE"
   install -m 0644 THIRD_PARTY_NOTICES.md "$root/usr/share/doc/alzette-connect/THIRD_PARTY_NOTICES.md"
   cat > "$root/DEBIAN/control" <<EOF
 Package: alzette-connect

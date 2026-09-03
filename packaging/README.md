@@ -9,9 +9,10 @@ The packaging tree contains source metadata and non-secret release inputs.
 Generated installers, update bundles, signatures, certificates, notarization
 credentials, and publishing tokens do not belong in Git.
 
-Package license metadata must follow the repository owner's explicit licensing
-decision. No open-source license is inferred from the framework or generated
-packaging defaults.
+The desktop client and release automation are licensed under Apache-2.0. Every
+source and binary distribution includes `LICENSE`, `NOTICE`, and
+`THIRD_PARTY_NOTICES.md`. This license does not cover the separately operated
+Alzette website, identity service, or inference platform.
 
 ## Target artifacts
 

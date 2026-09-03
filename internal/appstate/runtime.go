@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ticruz38/alzette-connect/internal/credentialstore"
-	connectplatform "github.com/ticruz38/alzette-connect/internal/platform"
-	"github.com/ticruz38/alzette-connect/internal/proxy"
-	"github.com/ticruz38/alzette-connect/internal/session"
+	"github.com/alzette-systems/alzette-connect/internal/credentialstore"
+	connectplatform "github.com/alzette-systems/alzette-connect/internal/platform"
+	"github.com/alzette-systems/alzette-connect/internal/proxy"
+	"github.com/alzette-systems/alzette-connect/internal/session"
 )
 
 type RuntimeConfig struct {
