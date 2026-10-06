@@ -1,7 +1,14 @@
 import { endpointFreshUntil, endpointStatus } from "./endpoint-status.js";
+import piIcon from "./assets/apps/pi.svg";
+import janIcon from "./assets/apps/jan.png";
+import gooseIcon from "./assets/apps/goose.svg";
+import chatgptIcon from "./assets/apps/chatgpt.svg";
+import claudeIcon from "./assets/apps/claude.png";
 
 (() => {
   "use strict";
+
+  const APPLICATION_ICONS = { pi: piIcon, jan: janIcon, goose: gooseIcon, chatgpt: chatgptIcon, claude: claudeIcon };
 
   const APPLICATION_NAMES = {
     pi: "Pi",
@@ -281,7 +288,17 @@ import { endpointFreshUntil, endpointStatus } from "./endpoint-status.js";
     const icon = document.createElement("span");
     icon.className = `app-icon${application.id === "pi" ? " app-icon--pi" : ""}`;
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = application.id === "pi" ? "π" : (application.name[0] || "A").toUpperCase();
+    if (Object.hasOwn(APPLICATION_ICONS, application.id)) {
+      const image = document.createElement("img");
+      image.src = APPLICATION_ICONS[application.id];
+      image.alt = "";
+      image.width = 28;
+      image.height = 28;
+      icon.classList.add("app-icon--original");
+      icon.append(image);
+    } else {
+      icon.textContent = (application.name[0] || "A").toUpperCase();
+    }
 
     const name = document.createElement("span");
     name.className = "application-row__name";

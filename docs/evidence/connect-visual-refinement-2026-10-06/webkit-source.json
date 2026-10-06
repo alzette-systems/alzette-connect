@@ -1,0 +1,871 @@
+{
+  "layouts": 72,
+  "interactions": "passed",
+  "errors": [],
+  "reports": [
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 1,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 720,
+        "height": 640
+      },
+      "scale": 2,
+      "fit": {
+        "client": 720,
+        "scroll": 720
+      }
+    },
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 1,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 520,
+        "height": 480
+      },
+      "scale": 2,
+      "fit": {
+        "client": 520,
+        "scroll": 520
+      }
+    },
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 1,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "signed-out",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "contexts",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "launcher",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "catalogue",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "preparing",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "running",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "disconnecting",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "recovery",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "offline",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "no-models",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "access-ended",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    },
+    {
+      "name": "diagnostics",
+      "size": {
+        "width": 380,
+        "height": 560
+      },
+      "scale": 2,
+      "fit": {
+        "client": 380,
+        "scroll": 380
+      }
+    }
+  ]
+}

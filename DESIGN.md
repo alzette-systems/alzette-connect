@@ -39,15 +39,15 @@ A two-part normal window: a night-colored employee-connection statement and a pa
 
 ### Application launcher
 
-The primary window is 720×640 and remains usable at approximately 520×480. Its order is fixed: brand/context header, synchronized company-catalogue strip, application ledger, then one night-colored launch plane. The application ledger may scroll vertically but the window never scrolls horizontally.
+The primary window is 720×640 and remains usable at approximately 520×480. Its order is fixed: brand/context header, synchronized company-catalogue strip, application ledger, then one night-colored launch plane. The application ledger may scroll vertically but the window never scrolls horizontally. Company and workspace use a quiet two-line header; compact windows move them below the brand and account menu.
 
 ### Launch and session plane
 
-The dark field is the only dominant panel. Before launch it names the selected application and catalogue behavior; while running it names the supervised application and offers tray/disconnect actions. Preparing becomes a full-window progress ledger. Recovery uses quiet amber and never claims revocation or restoration that was not confirmed.
+The dark field is the only dominant panel. Before launch it names the selected application and catalogue behavior, with a warm-paper primary button; while running it names the supervised application and offers tray/disconnect actions. Preparing becomes a full-window progress ledger. Recovery uses quiet amber and never claims revocation or restoration that was not confirmed.
 
 ### Ledger rows
 
-Models and applications are flat rows separated by rules, not collections of cards. Each application row has a plain-language name, exact observed version when qualified, delivery mode, compatible-model count, and explicit support state. “No models” is an entitlement state with guidance, not an error or zero-looking metric.
+Models and applications are flat rows separated by rules, not collections of cards. Each application row has a plain-language name, exact observed version when qualified, delivery mode, compatible-model count, and explicit support state. Original application artwork sits in a neutral 36px slot with 28px contained artwork; status retains its own label and glyph. Selection uses a neutral outline. Unknown applications retain an initial fallback. “No models” is an entitlement state with guidance, not an error or zero-looking metric.
 
 ## Interaction Rules
 
@@ -69,7 +69,7 @@ Use one authored transition: while preparing, the current progress-ledger marker
 - Windows keeps the same launcher available from the tray, with Start menu and notification entry points handled by the native shell.
 - Linux uses a status item where supported and the normal launcher window everywhere else.
 - Native shells own title bars, window shadows, menu placement, notifications, and platform font rendering. The web content must not fake traffic lights, title-bar drag regions, or OS menus.
-- Below 600px signed-out content becomes one column and application rows reflow without hiding their written status. The application ledger scrolls vertically while the launch/session plane remains visible.
+- Below 600px signed-out content becomes one column and application rows reflow without hiding their written status. The application ledger scrolls vertically while the launch/session plane remains visible at ordinary text sizes. When available width is below 32 body-font em, including enlarged text, the workspace owns vertical scrolling and actions follow the ledger so they cannot obscure it. Full action labels remain reachable without reducing text size.
 
 ## Accessibility
 
