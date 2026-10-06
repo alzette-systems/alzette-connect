@@ -24,6 +24,7 @@ on:
   push:
     tags:
       - 'connect-v*-demo.*'
+      - 'connect-windows-v*-demo.*'
 
 permissions:
   contents: read
@@ -38,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(inputs.platform == 'windows' && '[{"os":"windows-2025","label":"Windows x64"}]' || '[{"os":"ubuntu-24.04","label":"Linux x64"},{"os":"macos-15","label":"macOS arm64"},{"os":"macos-15-intel","label":"macOS x64"},{"os":"windows-2025","label":"Windows x64"}]') }}
+        include: ${{ fromJSON((inputs.platform == 'windows' || startsWith(github.ref_name, 'connect-windows-v')) && '[{"os":"windows-2025","label":"Windows x64"}]' || '[{"os":"ubuntu-24.04","label":"Linux x64"},{"os":"macos-15","label":"macOS arm64"},{"os":"macos-15-intel","label":"macOS x64"},{"os":"windows-2025","label":"Windows x64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     permissions:
@@ -56,6 +57,13 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v7
+
+      - name: Validate demo version
+        run: |
+          version="${ALZETTE_CONNECT_VERSION#connect-windows-v}"
+          version="${version#connect-v}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-demo\.[0-9]+$ ]]
+          printf 'ALZETTE_CONNECT_VERSION=%s\n' "$version" >> "$GITHUB_ENV"
 
       - name: Set up Go
         uses: actions/setup-go@v7
@@ -118,7 +126,7 @@ jobs:
 
   release:
     name: Publish integrity-checked demo release
-    if: startsWith(github.ref, 'refs/tags/connect-v') || inputs.publish
+    if: startsWith(github.ref, 'refs/tags/connect-v') || startsWith(github.ref, 'refs/tags/connect-windows-v') || inputs.publish
     needs: package
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -137,7 +145,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version || github.ref_name }}
         run: |
-          version="${RELEASE_VERSION#connect-v}"
+          version="${RELEASE_VERSION#connect-windows-v}"
+          version="${version#connect-v}"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-demo\.[0-9]+$ ]]
           tag="connect-v$version"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then

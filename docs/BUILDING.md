@@ -102,6 +102,16 @@ Add `-f publish=true` to publish the successful packages as an unsigned demo
 prerelease. The version must have the form `X.Y.Z-demo.N`; existing release
 assets are never replaced.
 
+When workflow dispatch is unavailable, push a Windows build tag instead:
+
+```sh
+git tag connect-windows-v0.3.12-demo.1
+git push origin connect-windows-v0.3.12-demo.1
+```
+
+This builds only Windows and publishes the canonical
+`connect-v0.3.12-demo.1` prerelease after successful verification and packaging.
+
 ## Outputs
 
 Wails writes intermediate build/package files under its configured build tree.
