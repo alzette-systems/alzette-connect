@@ -337,9 +337,18 @@ func (s *Session) loadContexts(ctx context.Context) error {
 	if response.StatusCode >= 500 {
 		return errors.New("endpoint status service is unavailable")
 	}
-	var result contextsResponse
-	if response.StatusCode != http.StatusOK || decodeJSON(response.Body, &result) != nil || result.Schema != "alzette.agent-contexts.v1" {
+	if response.StatusCode == http.StatusForbidden {
 		return ErrAccessRemoved
+	}
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("read Alzette contexts: unexpected HTTP status %d", response.StatusCode)
+	}
+	var result contextsResponse
+	if err := decodeJSON(response.Body, &result); err != nil {
+		return fmt.Errorf("decode Alzette contexts: %w", err)
+	}
+	if result.Schema != "alzette.agent-contexts.v1" {
+		return errors.New("Alzette context response has an unsupported schema")
 	}
 	for index := range result.Contexts {
 		normalizeContext(&result.Contexts[index])
