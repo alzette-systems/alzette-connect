@@ -18,3 +18,5 @@ The repair is prepared for signed macOS release 0.3.12. Native package signing, 
 - [Cross-platform CI](https://github.com/alzette-systems/alzette-connect/actions/runs/37457163820) passed on Linux, Windows and macOS.
 - [Signed macOS release attempt](https://github.com/alzette-systems/alzette-connect/actions/runs/37457173423): Apple Silicon source checks, compilation and Developer ID signature verification passed. Apple's notarization service returned HTTP 403 because a required agreement is missing or expired. No notarized 0.3.12 release was published.
 - The Apple Developer Account Holder must review the pending agreement before retrying notarization. Signing credentials were removed by the workflow's cleanup step. The production release gate was retained.
+
+The Account Holder subsequently resolved the agreement. [Signed and notarized macOS 0.3.13](../macos-release-0.3.13-2026-10-06/README.md) was published successfully for both architectures, and the portal now points to that release.
