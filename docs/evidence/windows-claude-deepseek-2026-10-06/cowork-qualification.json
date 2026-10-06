@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-06",
+  "gateway_binary_sha256": "d229fd13e4c58c09c0f8cf388efa8d0c311ae51b4d4fd634e30bc21c30becc43",
+  "gateway_source_head": "2a96d9c73b78e59909515aca4e5930b6374d1db1",
+  "gateway_source_dirty": true,
+  "claude_version": "2.19675.0.0",
+  "windows_vm": "alzette-windows-qa",
+  "vm_memory_gib": 8,
+  "host_nested_virtualization": true,
+  "provider_routes": [
+    "qa-shared-pro",
+    "qa-shared-flash"
+  ],
+  "successful_requests": 11,
+  "settlement_assertions": "All successful requests have final provider usage, settled lease, one meter event, charge equals input+output.",
+  "fixture_note": "An isolated clone required consistent 1m limits in endpoint facts, policy, bindings and period. An initially mismatched copied-fixture edit returned target_unavailable before correction. No public limits or deployments changed.",
+  "scope": "Local third-party Cowork workspace Python execution, host-shared file read/write, CSV and XLSX creation and formula verification. Not cloud Cowork, browser/computer-use or hosted connector qualification."
+}

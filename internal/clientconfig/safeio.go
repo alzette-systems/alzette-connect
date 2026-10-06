@@ -36,7 +36,21 @@ type transaction struct {
 }
 
 func acquireConfigLock(ctx context.Context, path string) (func(), error) {
+	if !filepath.IsAbs(path) {
+		return nil, fmt.Errorf("%w: path must be absolute", ErrUnsafePath)
+	}
+	if err := rejectSymlinks(path + ".alzette-connect.lock"); err != nil {
+		return nil, err
+	}
 	if err := ensureExistingParentPrivate(filepath.Dir(path)); err != nil {
+		return nil, err
+	}
+	// A first ChatGPT launch has no ~/.codex directory yet. The lock must be
+	// created before the configuration transaction can create its files.
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return nil, err
+	}
+	if err := ensurePrivateOwner(filepath.Dir(path)); err != nil {
 		return nil, err
 	}
 	lock := flock.New(path + ".alzette-connect.lock")

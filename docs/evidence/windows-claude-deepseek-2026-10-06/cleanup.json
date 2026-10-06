@@ -1,0 +1,11 @@
+{
+  "native_claude_processes": 0,
+  "native_codex_processes": 0,
+  "claude_journal_present": false,
+  "private_claude_input_present": false,
+  "private_openai_input_present": false,
+  "grant_revocation_and_refresh_deletion": "passed in all three final native reports",
+  "isolated_gateway_container_removed": true,
+  "isolated_control_container_removed": true,
+  "isolated_database_dropped": true
+}

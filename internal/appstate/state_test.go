@@ -50,6 +50,26 @@ func TestInferenceSessionCannotStartBeforeEmployeeSignIn(t *testing.T) {
 	}
 }
 
+func TestEndpointStatusSnapshotOwnsItsEvidence(t *testing.T) {
+	now := time.Now().UTC()
+	until := now.Add(time.Minute)
+	model := New(now)
+	next := Snapshot{Phase: Ready, Contexts: []Context{{ID: "mem_a", Models: []string{"Team.Chat"}, Endpoints: []session.Model{{Alias: "Team.Chat", Status: "operational", Capabilities: []string{"chat"}, ObservedAt: &now, FreshUntil: &until}}}}}
+	model.Set(next)
+	next.Contexts[0].Endpoints[0].Status = "unavailable"
+	next.Contexts[0].Endpoints[0].Capabilities[0] = "changed"
+	*next.Contexts[0].Endpoints[0].FreshUntil = time.Time{}
+	current := model.Current()
+	endpoint := current.Contexts[0].Endpoints[0]
+	if endpoint.Status != "operational" || endpoint.Capabilities[0] != "chat" || endpoint.FreshUntil.IsZero() {
+		t.Fatalf("caller changed published evidence: %#v", endpoint)
+	}
+	*endpoint.ObservedAt = time.Time{}
+	if model.Current().Contexts[0].Endpoints[0].ObservedAt.IsZero() {
+		t.Fatal("reader changed published observation")
+	}
+}
+
 func TestResumeWithoutProtectedLoginDoesNotStartBrowserFlow(t *testing.T) {
 	now := time.Date(2026, 8, 18, 10, 0, 0, 0, time.UTC)
 	model := New(now)

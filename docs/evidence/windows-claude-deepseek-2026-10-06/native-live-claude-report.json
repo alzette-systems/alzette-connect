@@ -1,0 +1,99 @@
+{
+  "claude_version": "2.19675.0.0",
+  "context_count": 1,
+  "model_mapping": {
+    "claude-opus-4-6": "qa-shared-pro",
+    "claude-sonnet-4-6": "qa-shared-flash"
+  },
+  "native_credential_store": "windows-credential-manager",
+  "native_requests": [
+    {
+      "fields": [
+        "max_tokens",
+        "messages",
+        "model",
+        "system"
+      ],
+      "model": "qa-shared-flash",
+      "path": "/v1/messages",
+      "request_id": "req_ae39e658e1a4ee0949d81359b10e090e",
+      "status": 200,
+      "stream": false
+    },
+    {
+      "fields": [
+        "tools",
+        "max_tokens",
+        "messages",
+        "metadata",
+        "model",
+        "output_config",
+        "stream",
+        "system",
+        "thinking"
+      ],
+      "model": "qa-shared-pro",
+      "path": "/v1/messages",
+      "request_id": "req_8eeb85b68c506cc46a2aa3cfbce8b9a6",
+      "status": 400,
+      "stream": true
+    },
+    {
+      "fields": [
+        "metadata",
+        "model",
+        "output_config",
+        "system",
+        "thinking",
+        "max_tokens",
+        "messages",
+        "stream",
+        "tools"
+      ],
+      "model": "qa-shared-pro",
+      "path": "/v1/messages",
+      "request_id": "req_a1d41cfa6bdc0b33781fec28678576ac",
+      "status": 200,
+      "stream": true
+    },
+    {
+      "fields": [
+        "messages",
+        "metadata",
+        "model",
+        "stream",
+        "thinking",
+        "max_tokens",
+        "output_config",
+        "system",
+        "tools"
+      ],
+      "model": "qa-shared-pro",
+      "path": "/v1/messages",
+      "request_id": "req_260759560c061ace28f89b51a97c15d5",
+      "status": 200,
+      "stream": true
+    },
+    {
+      "fields": [
+        "system",
+        "thinking",
+        "max_tokens",
+        "metadata",
+        "stream",
+        "tools",
+        "messages",
+        "model",
+        "output_config"
+      ],
+      "model": "qa-shared-pro",
+      "path": "/v1/messages",
+      "request_id": "req_ee00387af998ce99166f6c0eee819f84",
+      "status": 200,
+      "stream": true
+    }
+  ],
+  "observed_at": "2026-10-06T08:06:13Z",
+  "oidc_pkce_callback": true,
+  "phase": "native_running"
+}

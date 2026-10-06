@@ -1,0 +1,6 @@
+{
+    "clientconfig_exit":  0,
+    "appstate_exit":  0,
+    "scope":  "Claude, OpenAI and shared connection paths; optional Pi qualification excluded after VM scan timeout",
+    "proxy_exit":  0
+}

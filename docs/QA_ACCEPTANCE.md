@@ -27,14 +27,18 @@ substitute.
 | Sleep, wake, network loss, clock change | Required | Required | Required | State/recovery test |
 | Disconnect/logout revokes and clears local state | Required | Required | Required | Server grant count and credential-store check |
 | Crash/forced-kill recovery is safe | Required | Required | Required | Restart test and bounded stale-grant evidence |
+| Pi pinned-version workflow | Required | Required | Required | Native installation, model switching, request/tool round trip and clean exit |
 | Jan pinned-version guided/adapter flow | Required | Required | Required | First request and clean exit on named version |
 | Goose pinned-version adapter flow | Required | Required | Required | First request and clean exit on named version |
 | Unknown Jan/Goose version is not modified | Required | Required | Required | Profile digest unchanged |
 | ChatGPT candidate is absent from normal builds | N/A | Required | Required | Build-gate test and native UI evidence |
-| ChatGPT Responses candidate flow | N/A | Required before enabling | Not available until Store integration exists | Exact bundle/version, buffered/streaming text, function tools, model switching, protocol errors, profile restore, and server ledger evidence |
-| ChatGPT process capability is Responses-only | N/A | Required before enabling | Required with future adapter | Chat Completions and every unsupported path fail with the same per-launch capability |
+| ChatGPT Responses candidate flow | N/A | Required before enabling | Required before enabling | Exact bundle/version, buffered/streaming text, function tools, model switching, protocol errors, profile restore, and server ledger evidence |
+| ChatGPT process capability is Responses-only | N/A | Required before enabling | Required before enabling | Chat Completions and every unsupported path fail with the same per-launch capability |
+| Claude Desktop third-party adapter | N/A | Required before adding support | Required before adding support | Exact package; Chat, Cowork and Code; Messages streaming/tools; helper refresh; alias selection; profile preservation |
 | Employee removed from group loses next-request access | Required | Required | Required | End-to-end authorization test |
 | Owner sees all active company endpoints | Required | Required | Required | End-to-end context/model test |
+| Endpoint outage keeps assigned aliases visible; recovery refreshes in place | Required | Required | Required | Server health/entitlement test plus Connect refresh test |
+| Missing, stale, or failed-refresh endpoint evidence shows unknown | Required | Required | Required | Status expiry test, including native Date bindings |
 | Tampered update is rejected | Required | Required | Required | Invalid metadata/artifact signature test |
 | Signed update drains, installs, relaunches | Required | Required | Required | Staged update record |
 | Rollback to prior supported build | Required | Required | Required | Staged rollback record |
@@ -44,6 +48,28 @@ substitute.
 Record Ubuntu point release, kernel, Wayland/X11, desktop environment, WebKitGTK
 version, Secret Service implementation, and whether the tray was available.
 Test both AppImage and `.deb`; passing one does not qualify the other.
+
+The explicitly gated Linux core harness covers the reusable Connect boundary
+against the configured real Casdoor and inference deployment:
+
+```bash
+ALZETTE_CONNECT_LIVE_QA=1 \
+ALZETTE_CONNECT_LIVE_QA_USERNAME='<invited employee>' \
+ALZETTE_CONNECT_LIVE_QA_PASSWORD='<from the QA secret store>' \
+ALZETTE_CONNECT_LIVE_QA_ORGANISATION='<expected company name>' \
+ALZETTE_CONNECT_LIVE_QA_MODELS='deepseek-v4-flash,deepseek-v4-pro' \
+ALZETTE_CONNECT_LIVE_QA_PI="$(command -v pi)" \
+scripts/qa-linux-live.sh
+```
+
+It uses an isolated Secret Service collection, performs the real Casdoor
+authorization-code/PKCE callback, rotates the protected refresh credential on
+resume, verifies exact model discovery through the private loopback proxy,
+sends bounded requests to every explicitly allowed real model, optionally runs
+the pinned Pi client, scans its temporary state for Connect credentials, then
+disconnects and proves the revoked grant cannot be reused. The harness never
+prints credentials or model output. It does not replace package, tray,
+accessibility, WebView, or platform-signing evidence.
 
 ## macOS-specific evidence
 
@@ -59,6 +85,12 @@ digests, and forced-kill recovery result.
 Record Windows edition/build, WebView2 version, installer scope, publisher and
 timestamp chain, Credential Manager behavior, notification-area persistence,
 repair/upgrade/uninstall behavior, and standard-user installation.
+
+The initial unsigned VM findings are recorded in
+[`WINDOWS_CHATGPT_PARITY.md`](WINDOWS_CHATGPT_PARITY.md). They establish native
+functional progress and do not count as a signed release `PASS`. Every macOS
+desktop adapter needs its corresponding native Windows acceptance row; see
+[`DESKTOP_PARITY.md`](DESKTOP_PARITY.md).
 
 ## Release decision
 

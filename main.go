@@ -28,6 +28,12 @@ func init() {
 }
 
 func main() {
+	if handled, err := clientconfig.HandleClaudeCredentialHelper(os.Args); handled {
+		if err != nil {
+			os.Exit(1)
+		}
+		return
+	}
 	if handled, err := updater.HandleHelper(os.Args); handled {
 		if err != nil {
 			log.Print(err)

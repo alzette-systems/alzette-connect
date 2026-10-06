@@ -1,3 +1,5 @@
+import { endpointFreshUntil, endpointStatus } from "./endpoint-status.js";
+
 (() => {
   "use strict";
 
@@ -59,6 +61,14 @@
       organisation: safeText(context?.organisation, "Company", 100),
       project: safeText(context?.project, "", 100),
       environment: safeText(context?.environment, "", 100),
+      endpoints: Array.isArray(context?.endpoints) ? context.endpoints.slice(0, 64).map((endpoint) => ({
+        alias: safeText(endpoint?.alias, "", 128),
+        status: safeText(endpoint?.status, "unknown", 30),
+        callable: typeof endpoint?.callable === "boolean" ? endpoint.callable : null,
+        status_detail: safeText(endpoint?.status_detail, "", 180),
+        freshness: safeText(endpoint?.freshness, "unknown", 30),
+        fresh_until: endpointFreshUntil(endpoint?.fresh_until),
+      })) : [],
       models: Array.isArray(context?.models)
         ? [...new Set(context.models.map((model) => safeText(model, "", 128)).filter(Boolean))].slice(0, 64)
         : [],
@@ -218,11 +228,11 @@
     const models = context?.models || [];
     const authorityCurrent = state.snapshot.phase === "ready" || state.snapshot.phase === "no_access";
     $("[data-catalogue-count]").textContent = models.length
-      ? `${models.length} model${models.length === 1 ? "" : "s"} available through Alzette`
+      ? `${models.length} company endpoint${models.length === 1 ? "" : "s"}`
       : "No company models available";
     $("[data-catalogue-freshness]").textContent = !authorityCurrent
       ? "Last known company access · reconnect required"
-      : models.length ? "Current company access · synchronized now" : "Your company owner manages access through groups";
+      : models.length ? "Endpoint status refreshes every 30 seconds" : "Your company owner manages access through groups";
     const list = $("[data-model-list]");
     const empty = $("[data-model-empty]");
     list.replaceChildren();
@@ -234,8 +244,11 @@
       const detail = document.createElement("small");
       const status = document.createElement("em");
       name.textContent = alias;
-      detail.textContent = "Company model alias";
-      status.textContent = "Available";
+      const endpoint = context?.endpoints?.find((value) => value.alias === alias);
+      const health = endpointStatus(endpoint);
+      detail.textContent = health.detail;
+      status.textContent = health.label;
+      status.className = health.className;
       copy.append(name, detail);
       item.append(copy, status);
       list.append(item);
@@ -541,6 +554,13 @@
     accountMenu.hidden = !accountMenu.hidden;
     menuButton.setAttribute("aria-expanded", String(!accountMenu.hidden));
   });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || accountMenu.hidden) return;
+    event.preventDefault();
+    accountMenu.hidden = true;
+    menuButton.setAttribute("aria-expanded", "false");
+    menuButton.focus({ preventScroll: true });
+  });
   document.addEventListener("click", (event) => {
     if (!accountMenu.hidden && !accountMenu.contains(event.target) && !menuButton.contains(event.target)) {
       accountMenu.hidden = true;
@@ -568,5 +588,6 @@
     setNativeMode,
     currentState: () => state.snapshot,
   };
+  setInterval(() => renderModels(selectedContext()), 5000);
   render();
 })();

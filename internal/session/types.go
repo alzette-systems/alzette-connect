@@ -37,10 +37,16 @@ type Context struct {
 }
 
 type Model struct {
-	Alias               string   `json:"alias"`
-	DisplayName         string   `json:"display_name"`
-	Capabilities        []string `json:"capabilities,omitempty"`
-	ContextWindowTokens *int64   `json:"context_window_tokens,omitempty"`
+	Alias               string     `json:"alias"`
+	DisplayName         string     `json:"display_name"`
+	Capabilities        []string   `json:"capabilities,omitempty"`
+	ContextWindowTokens *int64     `json:"context_window_tokens,omitempty"`
+	Status              string     `json:"status"`
+	Callable            bool       `json:"callable"`
+	StatusDetail        string     `json:"status_detail"`
+	Freshness           string     `json:"freshness"`
+	ObservedAt          *time.Time `json:"observed_at,omitempty"`
+	FreshUntil          *time.Time `json:"fresh_until,omitempty"`
 }
 
 type contextsResponse struct {

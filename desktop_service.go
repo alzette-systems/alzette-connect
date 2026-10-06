@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -55,6 +56,20 @@ func (s *desktopService) ServiceStartup(ctx context.Context, _ application.Servi
 		_, _ = s.runtime.Resume(ctx, s.membershipID)
 	}()
 	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				refreshCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+				_ = s.runtime.RefreshEndpointStatus(refreshCtx)
+				cancel()
+			}
+		}
+	}()
+	go func() {
 		select {
 		case <-ctx.Done():
 			return
@@ -84,6 +99,21 @@ func (s *desktopService) presentationState(snapshot appstate.Snapshot) appstate.
 	for index := range snapshot.Applications {
 		if snapshot.Applications[index].Status == "ready" || snapshot.Applications[index].Status == "verification_required" || snapshot.Applications[index].Status == "needs_attention" {
 			snapshot.Applications[index].ModelCount = modelCount
+			if snapshot.Applications[index].ID == "claude" && modelCount > 0 {
+				var models []string
+				for _, available := range snapshot.Contexts {
+					if available.ID == snapshot.SelectedContextID || snapshot.SelectedContextID == "" && len(snapshot.Contexts) == 1 {
+						models = available.Models
+						break
+					}
+				}
+				compatible, err := clientconfig.ClaudeConnection(clientconfig.Connection{Models: models})
+				snapshot.Applications[index].ModelCount = len(compatible.Models)
+				if err != nil {
+					snapshot.Applications[index].Status = "protocol_unavailable"
+					snapshot.Applications[index].Detail = "Your company must assign a model for Claude Desktop"
+				}
+			}
 		}
 	}
 	s.launchMu.Lock()
@@ -394,10 +424,28 @@ func (s *desktopService) LaunchApplication(id string) error {
 			return friendlyClientError("ChatGPT", err)
 		}
 		observedVersion = version
+	} else if id == "claude" {
+		models := s.runtime.SelectedModelCatalog()
+		aliases := make([]string, 0, len(models))
+		for _, model := range models {
+			aliases = append(aliases, model.Alias)
+		}
+		if _, err := clientconfig.ClaudeConnection(clientconfig.Connection{Models: aliases}); err != nil {
+			s.setLaunch(appstate.Launch{Phase: "idle"})
+			return friendlyClientError("Claude Desktop", err)
+		}
+		version, err := clientconfig.ObserveWindowsClaudeVersion(ctx, s.clients.claudeExecutable)
+		if err != nil {
+			s.setLaunch(appstate.Launch{Phase: "idle"})
+			return friendlyClientError("Claude Desktop", err)
+		}
+		observedVersion = version
 	}
 	protocolPath := "/v1/chat/completions"
 	if id == "chatgpt" {
 		protocolPath = "/v1/responses"
+	} else if id == "claude" {
+		protocolPath = "/v1/messages"
 	}
 	if err := s.runtime.StartLaunch(ctx, protocolPath); err != nil {
 		s.setLaunch(appstate.Launch{Phase: "idle"})
@@ -447,6 +495,21 @@ func (s *desktopService) LaunchApplication(id string) error {
 			process, err = clientconfig.LaunchChatGPT(ctx, s.clients.chatGPTExecutable, connection)
 			if err == nil {
 				s.setApplicationObserved("chatgpt", observedVersion)
+			}
+		}
+	case "claude":
+		helper, helperErr := os.Executable()
+		if helperErr != nil {
+			err = helperErr
+			break
+		}
+		var result *clientconfig.Result
+		result, err = s.clientConfig.ConfigureClaudeWindows(ctx, clientconfig.ClaudeRequest{Connection: connection, ExecutablePath: s.clients.claudeExecutable, HelperExecutablePath: helper, Version: observedVersion})
+		if err == nil {
+			rollback = result.Rollback
+			process, err = clientconfig.LaunchObserved(ctx, s.clients.claudeExecutable)
+			if err == nil {
+				s.setApplicationObserved("claude", observedVersion)
 			}
 		}
 	default:
@@ -572,6 +635,16 @@ func (s *desktopService) disconnectLocked(ctx context.Context) error {
 	s.activeRollback = nil
 	s.launchMu.Unlock()
 	if process == nil {
+		if s.clientConfig != nil && s.clients != nil && s.clients.claudeExecutable != "" {
+			if err := s.clientConfig.RecoverClaudeWindows(ctx, s.clients.claudeExecutable, ""); err != nil {
+				retry := func(retryCtx context.Context) error {
+					return s.clientConfig.RecoverClaudeWindows(retryCtx, s.clients.claudeExecutable, "")
+				}
+				s.rememberPendingCleanup(retry, false)
+				s.setLaunch(appstate.Launch{Phase: "recovery", ApplicationID: "claude", Application: "Claude Desktop", Message: "Close Claude Desktop, then restore its original profile", CleanupPending: true, LocalClosed: true, GrantStatus: "confirmed", ProfileStatus: "needs_review"})
+				return friendlyClientError("Claude Desktop", err)
+			}
+		}
 		if s.clientConfig != nil && s.clients != nil && s.clients.chatGPTExecutable != "" {
 			recovered, err := s.clientConfig.RecoverChatGPT(ctx, s.clients.chatGPTExecutable)
 			if err != nil {

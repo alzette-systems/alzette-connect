@@ -1,0 +1,71 @@
+{
+  "os": "Windows 11 Enterprise Evaluation 26H2",
+  "os_version": "10.0.26300",
+  "architecture": "x64",
+  "hypervisor": "KVM/QEMU",
+  "source_commit": "c3f259fb3774e35eaccf6b5e3fe1fd3bf04e7f00",
+  "source_state": "working tree with uncommitted changes",
+  "go_version": "go version go1.25.0 linux/amd64",
+  "artifacts": {
+    "windows-chatgpt-qa.exe": {
+      "sha256": "b34936692feca580bf41ccc85fee258d48377b2892df9fef0dfe48e0cedec8bc",
+      "bytes": 10733056
+    },
+    "Alzette-Connect-internal.exe": {
+      "sha256": "379af562323978525614450ab1b442fac64e5b710401d06d5a246bc33f1d6881",
+      "bytes": 18391040
+    },
+    "clientconfig.test.exe": {
+      "sha256": "9670e49cdde410288a71f4eda82747bda124447cdb4cbaf9d2f6e8f2efac76ac",
+      "bytes": 6574080
+    },
+    "credentialstore.test.exe": {
+      "sha256": "bdfe645ef1bd79fd41766a2d7b2ce42f69e5231c1bfd85251b9d91257a79da61",
+      "bytes": 4775424
+    },
+    "proxy.test.exe": {
+      "sha256": "62d3c868584b846b4c60ece7fc869933676212c9cd9d7786e5ff9ff43c60e6e5",
+      "bytes": 10630144
+    },
+    "session.test.exe": {
+      "sha256": "6f73c75f7f9a97c5737aa04f738dd6a656b3c4a4806be42ec00d304c2f069ae5",
+      "bytes": 10902016
+    },
+    "ChatGPT-x64.msix": {
+      "sha256": "e03019134d729c6416173b0712aa5c51d079966253f77077f4bf105d29d8fce7",
+      "bytes": 912020731
+    },
+    "Claude-x64.msix": {
+      "sha256": "8355c3d28aa08d2e8d841596b41abce0a4fc3805cc9d74f6836d42176ab6b0f9",
+      "bytes": 291543056
+    },
+    "Pi-0.84.2-windows-x64.zip": {
+      "sha256": "741fc1ae1afecb573ac2888e011188ff446b3940f4aabe1583f60bf55be8a3d0",
+      "bytes": 45470989,
+      "source_url": "https://github.com/earendil-works/pi/releases/download/v0.84.2/pi-windows-x64.zip",
+      "published_digest": "sha256:741fc1ae1afecb573ac2888e011188ff446b3940f4aabe1583f60bf55be8a3d0"
+    },
+    "Jan_0.8.4_x64-setup.exe": {
+      "sha256": "59f2712ff579208c7e50df1d4408675418ca576421998549f787879372ec50b1",
+      "bytes": 57771664,
+      "source_url": "https://github.com/janhq/jan/releases/download/v0.8.4/Jan_0.8.4_x64-setup.exe",
+      "published_digest": "sha256:59f2712ff579208c7e50df1d4408675418ca576421998549f787879372ec50b1"
+    },
+    "Goose-1.46.0-win32-x64.zip": {
+      "sha256": "07d946c725ec81387af732287a3332b413412a62a4b9bf00db98bac7dd5526d4",
+      "bytes": 254377406,
+      "source_url": "https://github.com/aaif-goose/goose/releases/download/v1.46.0/Goose-win32-x64.zip",
+      "published_digest": "sha256:07d946c725ec81387af732287a3332b413412a62a4b9bf00db98bac7dd5526d4"
+    },
+    "Alzette-Connect-internal-final.exe": {
+      "sha256": "791265079ad4035feb89c5acc2290e622925657da2a482e156daf6a60da52088",
+      "bytes": 18391040,
+      "note": "Final x64-check build opened in the native desktop after reboot; see connect-native-window-final.png."
+    },
+    "windows-chatgpt-qa-final.exe": {
+      "sha256": "52f039d0deb7d4e2fe503ebe8da827efcb9b4ae20736311d907d84c73f7918b4",
+      "bytes": 10680832,
+      "note": "Final fixture with x64 package verification and teardown failures reported as failed."
+    }
+  }
+}

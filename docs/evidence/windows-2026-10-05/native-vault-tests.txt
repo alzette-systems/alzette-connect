@@ -1,0 +1,15 @@
+=== RUN   TestWindowsNativeLongRefreshLifecycle
+--- PASS: TestWindowsNativeLongRefreshLifecycle (0.15s)
+=== RUN   TestProtectedRefreshRotationHandlesLongTokensAndRemovesOldParts
+--- PASS: TestProtectedRefreshRotationHandlesLongTokensAndRemovesOldParts (0.00s)
+=== RUN   TestProtectedRefreshInterruptedRotationKeepsPreviousToken
+--- PASS: TestProtectedRefreshInterruptedRotationKeepsPreviousToken (0.00s)
+=== RUN   TestProtectedRefreshFailsClosedOnMissingOrModifiedPart
+--- PASS: TestProtectedRefreshFailsClosedOnMissingOrModifiedPart (0.00s)
+=== RUN   TestMemoryLifecycleAndLock
+--- PASS: TestMemoryLifecycleAndLock (0.00s)
+=== RUN   TestUnavailableNeverFallsBack
+--- PASS: TestUnavailableNeverFallsBack (0.00s)
+=== RUN   TestFileLockSerializesAndHonorsCancellation
+--- PASS: TestFileLockSerializesAndHonorsCancellation (0.08s)
+PASS

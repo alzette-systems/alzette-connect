@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alzette-systems/alzette-connect/internal/clientconfig"
 	"github.com/alzette-systems/alzette-connect/internal/credentialstore"
 	connectplatform "github.com/alzette-systems/alzette-connect/internal/platform"
 	"github.com/alzette-systems/alzette-connect/internal/proxy"
@@ -34,6 +35,7 @@ type Runtime struct {
 	state  *Model
 
 	mu         sync.Mutex
+	refreshMu  sync.Mutex
 	connecting bool
 	launching  bool
 	session    *session.Session
@@ -63,6 +65,72 @@ func NewRuntime(config RuntimeConfig, state *Model) (*Runtime, error) {
 }
 
 func (r *Runtime) State() *Model { return r.state }
+
+// RefreshEndpointStatus updates the visible catalogue while preserving an
+// active local application session. The gateway remains the authority for
+// every inference request; refreshing never mints or exposes credentials.
+func (r *Runtime) RefreshEndpointStatus(ctx context.Context) error {
+	r.refreshMu.Lock()
+	defer r.refreshMu.Unlock()
+	r.mu.Lock()
+	connected := r.session
+	r.mu.Unlock()
+	if connected == nil {
+		return nil
+	}
+	err := connected.RefreshContexts(ctx)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.session != connected {
+		return nil
+	}
+	next := r.state.Current()
+	if next.Phase == Stopping || next.Phase == SigningIn {
+		return nil
+	}
+	if err != nil {
+		for i := range next.Contexts {
+			for j := range next.Contexts[i].Endpoints {
+				endpoint := &next.Contexts[i].Endpoints[j]
+				endpoint.Status, endpoint.Freshness, endpoint.StatusDetail = "unknown", "stale", "Unable to refresh endpoint status"
+				endpoint.FreshUntil = nil
+			}
+		}
+		if errors.Is(err, session.ErrAccessRemoved) {
+			next.Phase = AccessRemoved
+			next.Contexts = nil
+			next.SelectedContextID = ""
+			next.Message = "Your company access has ended"
+		}
+		if errors.Is(err, session.ErrSignInRequired) {
+			next.Phase = SignInRequired
+			next.Message = "Sign in again to refresh company access"
+		}
+	} else {
+		next.Contexts = presentationContexts(connected.Contexts())
+		next.SelectedContextID = connected.SelectedContext().MembershipID
+		if next.Phase == Ready || next.Phase == NoAccess || next.Phase == AccessRemoved {
+			next.Phase = Ready
+			next.Message = "Company endpoint status refreshed"
+			next.ErrorCode = ""
+			if len(next.Contexts) == 0 {
+				next.Phase = NoAccess
+				next.Message = "Your company has not assigned an endpoint yet"
+			}
+		}
+	}
+	next.UpdatedAt = r.config.Clock().UTC()
+	r.state.Set(next)
+	return err
+}
+
+func presentationContexts(values []session.Context) []Context {
+	contexts := make([]Context, 0, len(values))
+	for _, value := range values {
+		contexts = append(contexts, Context{ID: value.MembershipID, Organisation: value.Organisation, Project: value.Project, Environment: value.Environment, Models: append([]string(nil), value.ModelAliases...), Endpoints: value.Models})
+	}
+	return contexts
+}
 
 // Resume reconnects only when a protected refresh credential already exists.
 // It never opens a browser on application startup for a first-time user.
@@ -184,7 +252,18 @@ func (r *Runtime) StartLaunch(ctx context.Context, allowedInferencePaths ...stri
 		}
 		return err
 	}
-	local, err := proxy.Start(proxy.Config{Address: r.config.ProxyAddress, Provider: connected, Random: r.config.Random, AllowedInferencePaths: allowedInferencePaths})
+	proxyConfig := proxy.Config{Address: r.config.ProxyAddress, Provider: connected, Random: r.config.Random, AllowedInferencePaths: allowedInferencePaths}
+	if len(allowedInferencePaths) == 1 && allowedInferencePaths[0] == "/v1/messages" {
+		connection, err := clientconfig.ClaudeConnection(clientconfig.Connection{Models: connected.SelectedModels()})
+		if err != nil {
+			revokeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			_ = connected.RevokeGrant(revokeCtx)
+			cancel()
+			return err
+		}
+		proxyConfig.ModelAliases = connection.ModelAliases
+	}
+	local, err := proxy.Start(proxyConfig)
 	if err != nil {
 		revokeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		_ = connected.RevokeGrant(revokeCtx)
@@ -284,10 +363,7 @@ func (r *Runtime) Logout(ctx context.Context) error {
 }
 
 func (r *Runtime) set(phase Phase, message, errorCode string, values []session.Context) {
-	contexts := make([]Context, 0, len(values))
-	for _, value := range values {
-		contexts = append(contexts, Context{ID: value.MembershipID, Organisation: value.Organisation, Project: value.Project, Environment: value.Environment, Models: append([]string(nil), value.ModelAliases...)})
-	}
+	contexts := presentationContexts(values)
 	r.mu.Lock()
 	connected := r.session
 	r.mu.Unlock()

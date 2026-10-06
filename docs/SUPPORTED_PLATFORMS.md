@@ -27,12 +27,22 @@ release notes must name the exact tested Jan and Goose versions. Detecting an
 installed but untested client version must produce a truthful guided/manual
 path, not silently edit its profile.
 
-ChatGPT is currently a disabled-by-default macOS acceptance candidate, not a
-supported client. Windows ChatGPT is distributed through the Microsoft Store;
-Connect must add package-aware discovery, publisher verification, and
-activation before it can expose a Windows adapter. Linux has no ChatGPT Desktop
-adapter; Linux Connect remains supported through its separately qualified
-clients.
+Windows acceptance currently prioritizes ChatGPT and Claude Desktop. Pi, Jan
+and Goose are optional follow-up work; macOS is tested independently. Track
+results in [`DESKTOP_PARITY.md`](DESKTOP_PARITY.md). Claude’s Windows
+adapter uses official third-party configuration, a protected credential
+helper and assigned-route model mapping. Real DeepSeek Code/Cowork inference
+has passed; the adapter is enabled in source builds. Signed installer acceptance
+remains separate; see [`WINDOWS_CLAUDE.md`](WINDOWS_CLAUDE.md).
+
+ChatGPT is currently a disabled-by-default macOS/Windows acceptance candidate.
+The Windows candidate discovers the registered, Store-signed `OpenAI.Codex`
+package and verifies its publisher and manifest before supervised launch.
+Native Windows streaming, model switching, a function-tool round trip, errors,
+Credential Manager and profile cleanup passed against an isolated fixture; see
+[`WINDOWS_CHATGPT_PARITY.md`](WINDOWS_CHATGPT_PARITY.md). Live Casdoor/OIDC and gateway inference have now passed; actual provider tool
+compatibility and signed-package release acceptance remain required. Linux has no ChatGPT Desktop
+adapter; Linux Connect uses its separately qualified clients.
 
 ## Removing support
 
@@ -40,3 +50,24 @@ Raising a minimum OS, architecture, WebView, desktop client, or server protocol
 version requires product/security review, release-note notice, and a migration
 or continued safe-use path for the last supported release. An auto-update must
 not install a build that cannot run on the current machine.
+
+## Microsoft Copilot integration research
+
+The consumer Windows package `Microsoft.Copilot` version `1.25121.84.0` was
+installed from the Microsoft Store and inspected on 6 October 2026. Its internal
+endpoint selector chooses production, staging or a fixed local development
+service. The selector UI is gated on Microsoft-internal enrollment, and chat
+uses Copilot-specific WebSocket messages. No supported consumer custom-model
+configuration or working Alzette integration was established. A local service
+emulator would require a separate protocol and client-routing research project;
+adding OpenAI/Anthropic compatibility to the gateway alone does not provide it.
+
+Microsoft 365's [custom engine agents](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/overview-custom-engine-agent)
+officially support bringing our own models and orchestration into Copilot Chat
+and Teams. An Alzette-backed custom agent is the recommended supported route.
+It needs a hosted agent adapter, Microsoft tenant/app registration and user/company
+identity linking with the existing Alzette authorization model. It provides an
+Alzette agent inside Microsoft 365; it does not automatically replace the consumer
+assistant or inherit Microsoft's built-in Cowork/Office tools. Agent tools must
+be implemented and authorized separately. No Microsoft 365 tenant integration
+was live-qualified during this run. See [native research evidence](evidence/windows-copilot-research-2026-10-06/findings.json).

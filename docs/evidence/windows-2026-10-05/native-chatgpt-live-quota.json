@@ -1,0 +1,55 @@
+{
+  "chatgpt_version": "26.930.4958.0",
+  "context_count": 1,
+  "grant_revoked": true,
+  "native_credential_store": "windows-credential-manager",
+  "native_process_stopped": true,
+  "native_profile_restored": true,
+  "native_requests": [
+    {
+      "fields": [
+        "parallel_tool_calls",
+        "reasoning",
+        "store",
+        "stream",
+        "include",
+        "text",
+        "client_metadata",
+        "model",
+        "instructions",
+        "input",
+        "tools",
+        "prompt_cache_key",
+        "tool_choice"
+      ],
+      "model": "qa-shared-flash",
+      "path": "/v1/responses",
+      "status": 400,
+      "stream": true
+    },
+    {
+      "fields": [
+        "parallel_tool_calls",
+        "client_metadata",
+        "model",
+        "input",
+        "tools",
+        "reasoning",
+        "store",
+        "stream",
+        "include",
+        "prompt_cache_key",
+        "instructions",
+        "tool_choice"
+      ],
+      "model": "qa-shared-flash",
+      "path": "/v1/responses",
+      "status": 429,
+      "stream": true
+    }
+  ],
+  "observed_at": "2026-10-05T14:56:43Z",
+  "oidc_pkce_callback": true,
+  "phase": "finished",
+  "refresh_deleted": true
+}

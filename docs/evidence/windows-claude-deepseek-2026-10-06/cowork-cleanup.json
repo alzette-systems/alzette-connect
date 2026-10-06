@@ -1,0 +1,28 @@
+{
+  "claude_processes": 0,
+  "qa_harness_processes": 0,
+  "private_input_exists": false,
+  "outputs": [
+    {
+      "Name": "cowork-proof.txt",
+      "Length": 27
+    },
+    {
+      "Name": "flash-proof.txt",
+      "Length": 34
+    },
+    {
+      "Name": "totals.csv",
+      "Length": 69
+    },
+    {
+      "Name": "totals.xlsx",
+      "Length": 5033
+    }
+  ],
+  "isolated_gateway_removed": true,
+  "isolated_control_removed": true,
+  "copied_qa_database_removed": true,
+  "windows_vm_retained": true,
+  "native_cleanup_report_verified": true
+}

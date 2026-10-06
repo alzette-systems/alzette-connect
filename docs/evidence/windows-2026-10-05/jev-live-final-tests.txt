@@ -1,0 +1,85 @@
+TAP version 13
+# Subtest: queries are scoped and dependent queries require actual employee IDs
+ok 1 - queries are scoped and dependent queries require actual employee IDs
+  ---
+  duration_ms: 0.871413
+  ...
+# Subtest: context adapter rejects wrong-company data and cannot infer absence from a partial page
+ok 2 - context adapter rejects wrong-company data and cannot infer absence from a partial page
+  ---
+  duration_ms: 0.337809
+  ...
+# Subtest: original fixture routes classifications then scoped branches, preserving distinct hour spans
+ok 3 - original fixture routes classifications then scoped branches, preserving distinct hour spans
+  ---
+  duration_ms: 19.632645
+  ...
+# Subtest: unknown document goes to Sol with its original context, without being forced into a branch
+ok 4 - unknown document goes to Sol with its original context, without being forced into a branch
+  ---
+  duration_ms: 11.610307
+  ...
+# Subtest: Jev conflict decision retains evidence but cannot feed a downstream record choice
+ok 5 - Jev conflict decision retains evidence but cannot feed a downstream record choice
+  ---
+  duration_ms: 11.768983
+  ...
+# Subtest: duplicate identities preserve the matching packet for Sol
+ok 6 - duplicate identities preserve the matching packet for Sol
+  ---
+  duration_ms: 13.386294
+  ...
+# Subtest: provider failure stops subsequent evaluator calls; context overflow hands off without dispatch
+ok 7 - provider failure stops subsequent evaluator calls; context overflow hands off without dispatch
+  ---
+  duration_ms: 0.657434
+  ...
+# Subtest: reproduced undefined optional context is rejected locally, before any transport dispatch
+ok 8 - reproduced undefined optional context is rejected locally, before any transport dispatch
+  ---
+  duration_ms: 15.198689
+  ...
+# Subtest: source materialization preserves hashes and rejects paths outside the inbox
+ok 9 - source materialization preserves hashes and rejects paths outside the inbox
+  ---
+  duration_ms: 10.036767
+  ...
+# Subtest: dependencies override input ordering and verification precedes publication
+ok 10 - dependencies override input ordering and verification precedes publication
+  ---
+  duration_ms: 1.451113
+  ...
+# Subtest: independent reads run concurrently, writes serialize
+ok 11 - independent reads run concurrently, writes serialize
+  ---
+  duration_ms: 16.59561
+  ...
+# Subtest: ambiguous write or failed verification halts all further writes without retry
+ok 12 - ambiguous write or failed verification halts all further writes without retry
+  ---
+  duration_ms: 0.840776
+  ...
+# Subtest: cycles, duplicate producers and unverified actions rejected before effects
+ok 13 - cycles, duplicate producers and unverified actions rejected before effects
+  ---
+  duration_ms: 0.440119
+  ...
+# Subtest: create employee then refresh dependent context using returned real ID
+ok 14 - create employee then refresh dependent context using returned real ID
+  ---
+  duration_ms: 0.51536
+  ...
+# Subtest: tax-card read depends on action_record as well as the returned card ID
+ok 15 - tax-card read depends on action_record as well as the returned card ID
+  ---
+  duration_ms: 1.979316
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.954952

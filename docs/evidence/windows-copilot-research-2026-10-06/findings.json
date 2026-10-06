@@ -1,0 +1,61 @@
+{
+  "researched_at": "2026-10-06",
+  "client": {
+    "package": "Microsoft.Copilot",
+    "version": "1.25121.84.0",
+    "publisher_family": "8wekyb3d8bbwe",
+    "installation": "Official Microsoft Store through winget, product 9NHT9RB2F4HD",
+    "inspection": "Installed Windows client UI and managed IL; original package not modified",
+    "assembly_sha256": {
+      "CopilotNative.Platform.dll": "f2abfbfd01fccf7b49ae944ca231176cc4a6b1727c2265145475119fb8a6b931",
+      "CopilotNative.Core.dll": "96b02f1bb58063306cb784611272149438bf2c7d108f248e85ccbc79d0cfcd2c",
+      "Copilot.dll": "6169ac5371241e98ab12fd5cddd174c3b9597823fd3e65ba3a94948e5e30e17d"
+    }
+  },
+  "findings": [
+    {
+      "member": "CopilotNative.Platform.Endpoints.GetEndpoint",
+      "observed": {
+        "Production": "copilot.microsoft.com/c/api/",
+        "Staging": "copilotstaging.microsoft.com/c/api/",
+        "Local": "localhost:7350/"
+      },
+      "conclusion": "Enum selection among fixed service hosts, no arbitrary OpenAI or Anthropic base URL in this selector."
+    },
+    {
+      "member": "CopilotNative.Platform.Api.WebSocket.WebSocketEndpointProvider.get_ChatWebSocketUrl",
+      "observed": "wss:// + GetEndpoint(config) + chat?api-version=2",
+      "conclusion": "Copilot service protocol, not OpenAI chat/completions or Anthropic Messages."
+    },
+    {
+      "member": "CopilotNative.Settings.SectionProviders.ExpOverridesSettingsSectionProvider.get_IsSupported",
+      "observed": "Returns IExpFeatureManager.IsMicrosoftInternal",
+      "conclusion": "Internal endpoint selector is not a general public provider setting."
+    },
+    {
+      "member": "CopilotNative.Core.Exp.ExpRingEnrollment.DetermineExpRingAsync",
+      "observed": "Checks Microsoft Entra enrollment, then calls IMicrosoftGraphService.IsMicrosoftInternalAsync to determine internal ring.",
+      "conclusion": "This inspection did not enable or spoof internal entitlement."
+    },
+    {
+      "member": "CopilotNative.Features.Mcp.SectionProviders.McpDeveloperModeSettingsSectionProvider.get_IsSupported",
+      "observed": "Requires dynamic-mcp-actions-support feature and Windows developer mode. MCP app data toggles tool integration.",
+      "conclusion": "MCP tools can extend the orchestrator; they do not replace its inference provider."
+    }
+  ],
+  "assessment": {
+    "consumer_direct_alzette_model": "No supported integration found; no working custom-backend qualification.",
+    "experimental_local_service_emulation": "A possible research direction suggested by the local service selector, not a demonstrated integration. Requires Copilot-specific service protocol, session/bootstrap and tool lifecycle emulation, plus a reachable endpoint selection mechanism. A gateway-only OpenAI/Anthropic adapter is insufficient.",
+    "m365_custom_engine_agent": "Officially supports own AI models and orchestration; an Alzette-backed agent is architecturally feasible. Separate enterprise app/hosted agent project, not consumer backend replacement; not live-tested without a Microsoft 365 tenant/app registration.",
+    "windows_agent_launchers": "Official system discovery/invocation for own agent; does not replace consumer Copilot inference.",
+    "reverse_direction_projects": "Windows-Copilot-API consumes Microsoft Copilot and serves an OpenAI-compatible facade to other clients. It does not let the Copilot app consume Alzette."
+  },
+  "primary_sources": [
+    "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/overview-custom-engine-agent",
+    "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/publish",
+    "https://learn.microsoft.com/en-us/windows/ai/agent-launchers/",
+    "https://learn.microsoft.com/en-us/windows/ai/mcp/overview",
+    "https://github.com/sums001/Windows-Copilot-API"
+  ],
+  "recommended_scope": "Ship the native Claude/ChatGPT integration already qualified. If Microsoft 365 customers need Alzette inside Copilot, build a custom engine agent; do not advertise consumer Copilot BYOK support."
+}

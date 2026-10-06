@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-06",
+  "gateway_public_deployment_changed": false,
+  "public_installer_changed": false,
+  "windows_os": "Microsoft Windows 11 Enterprise Evaluation 10.0.26300",
+  "claude_version": "2.19675.0.0",
+  "chatgpt_version": "26.930.4958.0",
+  "go_version": "go version go1.25.0 linux/amd64",
+  "source": {
+    "gateway": {
+      "head": "2a96d9c73b78e59909515aca4e5930b6374d1db1",
+      "working_tree": "uncommitted development changes; qualification uses working tree"
+    },
+    "connect": {
+      "head": "c3f259fb3774e35eaccf6b5e3fe1fd3bf04e7f00",
+      "working_tree": "uncommitted development changes; qualification uses working tree"
+    }
+  },
+  "artifacts": {
+    "alzette-claude-gateway-qa": {
+      "path": "/tmp/alzette-claude-gateway-qa",
+      "sha256": "e02fe68bcf8e5ea47b975e04135b01c1e137c7a80a35053f7757a8a0feba2ca0"
+    },
+    "Alzette-Connect-windows-claude-deepseek-candidate.exe": {
+      "path": "/tmp/Alzette-Connect-windows-claude-deepseek-candidate.exe",
+      "sha256": "9078e7b18c74e880ef2904c8587c9d2bfc97583936cfe9474733a948156e899c"
+    },
+    "windows-oidc-claude-qa-v4.exe": {
+      "path": "/tmp/windows-oidc-claude-qa-v4.exe",
+      "sha256": "65d9c878fade0c858445da20b9657ee764f29367f9493055532526557eb883fd"
+    }
+  }
+}

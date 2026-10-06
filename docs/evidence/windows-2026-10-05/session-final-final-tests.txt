@@ -1,0 +1,15 @@
+=== RUN   TestBrowserLoginResumeContextMintAndRevoke
+--- PASS: TestBrowserLoginResumeContextMintAndRevoke (0.01s)
+=== RUN   TestRefreshWithoutRotationFailsClosedAndDeletesCredential
+--- PASS: TestRefreshWithoutRotationFailsClosedAndDeletesCredential (0.00s)
+=== RUN   TestProviderJSONAllowsExtensionsWhileOwnedJSONStaysStrict
+--- PASS: TestProviderJSONAllowsExtensionsWhileOwnedJSONStaysStrict (0.00s)
+=== RUN   TestNewReturnsRandomFailureInsteadOfPanicking
+--- PASS: TestNewReturnsRandomFailureInsteadOfPanicking (0.00s)
+=== RUN   TestRevokeDoesNotClaimUnauthorizedAsSuccess
+--- PASS: TestRevokeDoesNotClaimUnauthorizedAsSuccess (0.00s)
+=== RUN   TestMintDenialRequiresCurrentContextRevalidationBeforeAccessEnded
+--- PASS: TestMintDenialRequiresCurrentContextRevalidationBeforeAccessEnded (0.00s)
+=== RUN   TestHealthRefreshRetainsAliasAndHumanCredential
+--- PASS: TestHealthRefreshRetainsAliasAndHumanCredential (0.00s)
+PASS

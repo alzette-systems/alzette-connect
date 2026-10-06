@@ -14,9 +14,10 @@ import (
 // Process is a supervised child application. No command line, environment, or
 // executable path is exposed through this handle.
 type Process struct {
-	PID  int
-	Done <-chan error
-	cmd  *exec.Cmd
+	PID      int
+	Done     <-chan error
+	cmd      *exec.Cmd
+	stopTree func() error
 }
 
 // Launch starts an exact client executable without a shell, arguments, or
@@ -57,13 +58,31 @@ func launchObserved(ctx context.Context, executable string, arguments, environme
 	command.Stdin = nil
 	command.Stdout = nil
 	command.Stderr = nil
+	afterStart, stopTree, err := prepareProcessSupervision(command)
+	if err != nil {
+		return nil, err
+	}
 	if err := command.Start(); err != nil {
+		if stopTree != nil {
+			_ = stopTree()
+		}
+		return nil, err
+	}
+	if err := afterStart(); err != nil {
+		_ = command.Process.Kill()
+		if stopTree != nil {
+			_ = stopTree()
+		}
+		_ = command.Wait()
 		return nil, err
 	}
 	done := make(chan error, 1)
-	process := &Process{PID: command.Process.Pid, Done: done, cmd: command}
+	process := &Process{PID: command.Process.Pid, Done: done, cmd: command, stopTree: stopTree}
 	go func() {
 		err := command.Wait()
+		if stopTree != nil {
+			err = errors.Join(err, stopTree())
+		}
 		if cleanup != nil {
 			cleanup()
 		}
@@ -78,6 +97,17 @@ func launchObserved(ctx context.Context, executable string, arguments, environme
 func (p *Process) Stop(ctx context.Context) error {
 	if p == nil || p.cmd == nil || p.cmd.Process == nil {
 		return nil
+	}
+	if p.stopTree != nil {
+		if err := p.stopTree(); err != nil {
+			return err
+		}
+		select {
+		case <-p.Done:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 	if err := p.cmd.Process.Signal(os.Interrupt); err != nil && !errors.Is(err, os.ErrProcessDone) {
 		_ = p.cmd.Process.Kill()

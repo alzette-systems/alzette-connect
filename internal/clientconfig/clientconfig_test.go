@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -174,6 +173,31 @@ func TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack(t *testin
 	}
 }
 
+func TestConfigureChatGPTFreshProfileAndRollback(t *testing.T) {
+	root := canonicalTempRoot(t)
+	executable := filepath.Join(root, "ChatGPT")
+	mustWrite(t, executable, []byte("app"), 0o700)
+	manager := testManagerForOS(t, root, "windows", &memorySecrets{values: map[string]string{}}, stopped(false))
+	result, err := manager.ConfigureChatGPT(context.Background(), ChatGPTRequest{
+		ExecutablePath: executable, Connection: connection("alp_abcdefghijklmnopqrstuvwxyz0123456789"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(root, ".codex", "config.toml")
+	if _, err := os.Stat(configPath); err != nil {
+		t.Fatalf("fresh profile was not created: %v", err)
+	}
+	if err := result.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{configPath, filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename), manager.chatGPTRestorePath()} {
+		if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("fresh profile left a managed file after rollback: %s: %v", path, err)
+		}
+	}
+}
+
 func TestRecoverChatGPTRestoresAfterManagerRestart(t *testing.T) {
 	root := canonicalTempRoot(t)
 	configPath := filepath.Join(root, ".codex", "config.toml")
@@ -319,7 +343,7 @@ func TestConfigureChatGPTRecoversPreRestoreStateRelease(t *testing.T) {
 	configPath := filepath.Join(root, ".codex", "config.toml")
 	before := []byte("model = \"personal\"\n")
 	mustWrite(t, configPath+".alzette-connect.bak", before, 0o600)
-	legacyManaged := "model = \"company-chat\"\nmodel_provider = \"alzette-connect\"\nmodel_catalog_json = " + strconv.Quote(filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)) + "\n\n[model_providers.alzette-connect]\nname = \"Alzette\"\nbase_url = \"http://127.0.0.1:4242/v1/\"\nenv_key = \"ALZETTE_CONNECT_SESSION_KEY\"\nwire_api = \"responses\"\nruntime_default = true\n"
+	legacyManaged := chatGPTSetRootString("model = \"company-chat\"\nmodel_provider = \"alzette-connect\"\n", "model_catalog_json", filepath.Join(filepath.Dir(configPath), chatGPTCatalogFilename)) + "\n[model_providers.alzette-connect]\nname = \"Alzette\"\nbase_url = \"http://127.0.0.1:4242/v1/\"\nenv_key = \"ALZETTE_CONNECT_SESSION_KEY\"\nwire_api = \"responses\"\nruntime_default = true\n"
 	mustWrite(t, configPath, []byte(legacyManaged), 0o600)
 	executable := filepath.Join(root, "ChatGPT")
 	mustWrite(t, executable, []byte("app"), 0o700)

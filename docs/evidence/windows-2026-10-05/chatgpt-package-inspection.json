@@ -1,0 +1,40 @@
+{
+    "observed_at":  "2026-10-05T13:24:18.2284648Z",
+    "windows":  {
+                    "caption":  "Microsoft Windows 11 Enterprise Evaluation",
+                    "version":  "10.0.26300",
+                    "build":  "26300",
+                    "architecture":  "64-bit"
+                },
+    "microsoft_store_installed":  true,
+    "app_installer_installed":  true,
+    "packages":  [
+                     {
+                         "name":  "OpenAI.Codex",
+                         "version":  "26.930.4958.0",
+                         "architecture":  "X64",
+                         "package_full_name":  "OpenAI.Codex_26.930.4958.0_x64__2p2nqsd0c76g0",
+                         "package_family_name":  "OpenAI.Codex_2p2nqsd0c76g0",
+                         "publisher":  "CN=50BDFD77-8903-4850-9FFE-6E8522F64D5B",
+                         "publisher_id":  "2p2nqsd0c76g0",
+                         "signature_kind":  "Store",
+                         "status":  "Ok",
+                         "install_location":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.930.4958.0_x64__2p2nqsd0c76g0",
+                         "applications":  [
+                                              {
+                                                  "application_id":  "App",
+                                                  "executable":  "app/ChatGPT.exe",
+                                                  "entry_point":  "Windows.FullTrustApplication",
+                                                  "activation_id":  "OpenAI.Codex_2p2nqsd0c76g0!App"
+                                              },
+                                              {
+                                                  "application_id":  "CodexCoreCommandRunner",
+                                                  "executable":  "app/resources/codex-command-runner.exe",
+                                                  "entry_point":  "Windows.FullTrustApplication",
+                                                  "activation_id":  "OpenAI.Codex_2p2nqsd0c76g0!CodexCoreCommandRunner"
+                                              }
+                                          ]
+                     }
+                 ],
+    "qualification":  "Inspection only; native launch and model compatibility have not been verified."
+}

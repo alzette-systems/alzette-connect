@@ -8,6 +8,19 @@ on:
         required: true
         default: 0.2.0-demo.1
         type: string
+      platform:
+        description: Platforms to package
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows
+      publish:
+        description: Publish packages as an unsigned demo prerelease
+        required: true
+        default: false
+        type: boolean
   push:
     tags:
       - 'connect-v*-demo.*'
@@ -25,15 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-24.04
-            label: Linux x64
-          - os: macos-15
-            label: macOS arm64
-          - os: macos-15-intel
-            label: macOS x64
-          - os: windows-2025
-            label: Windows x64
+        include: ${{ fromJSON(inputs.platform == 'windows' && '[{"os":"windows-2025","label":"Windows x64"}]' || '[{"os":"ubuntu-24.04","label":"Linux x64"},{"os":"macos-15","label":"macOS arm64"},{"os":"macos-15-intel","label":"macOS x64"},{"os":"windows-2025","label":"Windows x64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     permissions:
@@ -113,7 +118,7 @@ jobs:
 
   release:
     name: Publish integrity-checked demo release
-    if: startsWith(github.ref, 'refs/tags/connect-v')
+    if: startsWith(github.ref, 'refs/tags/connect-v') || inputs.publish
     needs: package
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -130,14 +135,19 @@ jobs:
       - name: Publish immutable-version demo downloads
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version || github.ref_name }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "release $GITHUB_REF_NAME already exists; refusing to replace immutable assets" >&2
+          version="${RELEASE_VERSION#connect-v}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-demo\.[0-9]+$ ]]
+          tag="connect-v$version"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $tag already exists; refusing to replace immutable assets" >&2
             exit 1
           else
-            gh release create "$GITHUB_REF_NAME" dist/* \
+            gh release create "$tag" dist/* \
               --repo "$GITHUB_REPOSITORY" \
-              --title "Alzette Connect ${GITHUB_REF_NAME#connect-v}" \
+              --target "$GITHUB_SHA" \
+              --title "Alzette Connect $version" \
               --notes "Unsigned internal demo. Downloads are SHA-256 verified by Connect and carry GitHub build-provenance attestations. macOS notarization and Windows publisher signing are not yet complete." \
               --prerelease
           fi

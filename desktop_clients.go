@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -18,11 +19,15 @@ type desktopClients struct {
 	gooseExecutable   string
 	gooseASAR         string
 	chatGPTExecutable string
+	claudeExecutable  string
 }
 
 // Set by release packaging only for explicitly labelled internal candidate
 // builds. Production/default builds keep an unaccepted adapter non-launchable.
 var chatGPTCandidateEnabled = "false"
+
+// Windows Code/Cowork has been qualified against real assigned DeepSeek routes.
+var claudeWindowsCandidateEnabled = "true"
 
 func chatGPTCandidateIsEnabled() bool {
 	return strings.EqualFold(strings.TrimSpace(chatGPTCandidateEnabled), "true")
@@ -49,14 +54,18 @@ func (c *desktopClients) applicationStates() []appstate.Application {
 	if !chatGPTCandidateIsEnabled() {
 		chatGPTStatus = "not_supported"
 		chatGPTDetail = "Internal adapter candidate is disabled in this build"
-	} else if runtime.GOOS == "windows" {
-		chatGPTStatus = "not_supported"
-		chatGPTDetail = "Windows Store application integration is not yet available"
 	} else if runtime.GOOS == "linux" {
 		chatGPTStatus = "protocol_unavailable"
-		chatGPTDetail = "ChatGPT's Codex workspace is macOS-only in the current candidate"
+		chatGPTDetail = "ChatGPT's desktop workspace is available on macOS and Windows"
 	}
 	values = append(values, appstate.Application{ID: "chatgpt", Name: "ChatGPT", Status: chatGPTStatus, DeliveryMode: "primary_plus_catalogue", Installed: c.chatGPTExecutable != "", Detail: chatGPTDetail})
+	if runtime.GOOS == "windows" {
+		claudeStatus := status(c.claudeExecutable)
+		if !strings.EqualFold(claudeWindowsCandidateEnabled, "true") {
+			claudeStatus = "not_supported"
+		}
+		values = append(values, appstate.Application{ID: "claude", Name: "Claude Desktop", Status: claudeStatus, DeliveryMode: "primary_plus_catalogue", Installed: c.claudeExecutable != "", Detail: "Your company models in Code and Cowork"})
+	}
 	return values
 }
 
@@ -93,6 +102,10 @@ func discoverDesktopClients(home string) *desktopClients {
 			filepath.Join(home, "Applications", "ChatGPT.app", "Contents", "MacOS", "ChatGPT"),
 		}
 	case "windows":
+		result.claudeExecutable, _ = clientconfig.DiscoverWindowsClaude(context.Background())
+		if result.chatGPTExecutable == "" {
+			result.chatGPTExecutable, _ = clientconfig.DiscoverWindowsChatGPT(context.Background())
+		}
 		local := os.Getenv("LOCALAPPDATA")
 		piCandidates = []string{filepath.Join(local, "Programs", "pi", "pi.exe")}
 		janCandidates = []string{filepath.Join(local, "Programs", "Jan", "Jan.exe")}
@@ -186,6 +199,8 @@ func friendlyClientError(name string, err error) error {
 		return nil
 	}
 	switch {
+	case errors.Is(err, clientconfig.ErrClaudeModels):
+		return errors.New("Your company must assign a model before Claude Desktop can connect")
 	case errors.Is(err, os.ErrNotExist):
 		return fmt.Errorf("Open %s once, close it, then try again", name)
 	case errors.Is(err, clientconfig.ErrClientRunning):

@@ -1,0 +1,58 @@
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/developer_signature
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/broken_package
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/unsupported_architecture
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/other_entry_point
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/outside_executable
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/relative_install_location
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/classic
+=== RUN   TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/publisher
+--- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/developer_signature (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/broken_package (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/unsupported_architecture (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/other_entry_point (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/outside_executable (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/relative_install_location (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/classic (0.00s)
+    --- PASS: TestWindowsChatGPTPackageRequiresTheUnifiedTrustedStoreIdentity/publisher (0.00s)
+=== RUN   TestClaudeWindowsCrashRecoveryPreservesOtherProfiles
+--- PASS: TestClaudeWindowsCrashRecoveryPreservesOtherProfiles (0.07s)
+=== RUN   TestClaudeWindowsEditedOwnedProfileIsPreservedAndCredentialRevoked
+--- PASS: TestClaudeWindowsEditedOwnedProfileIsPreservedAndCredentialRevoked (0.05s)
+=== RUN   TestClaudeHelperChecksLaunchAndNeverFollowsRedirects
+--- PASS: TestClaudeHelperChecksLaunchAndNeverFollowsRedirects (0.00s)
+=== RUN   TestClaudeConnectionMapsAssignedModelsAndPreservesLabels
+--- PASS: TestClaudeConnectionMapsAssignedModelsAndPreservesLabels (0.00s)
+=== RUN   TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack
+--- PASS: TestConfigureChatGPTPreservesConfigUsesEnvironmentKeyAndRollsBack (0.06s)
+=== RUN   TestConfigureChatGPTFreshProfileAndRollback
+--- PASS: TestConfigureChatGPTFreshProfileAndRollback (0.04s)
+=== RUN   TestRecoverChatGPTRestoresAfterManagerRestart
+--- PASS: TestRecoverChatGPTRestoresAfterManagerRestart (0.06s)
+=== RUN   TestRecoverChatGPTRequiresApplicationToBeClosed
+--- PASS: TestRecoverChatGPTRequiresApplicationToBeClosed (0.05s)
+=== RUN   TestConfigureChatGPTRejectsUnownedProvider
+--- PASS: TestConfigureChatGPTRejectsUnownedProvider (0.01s)
+=== RUN   TestChatGPTRollbackPreservesAReplacementProfile
+--- PASS: TestChatGPTRollbackPreservesAReplacementProfile (0.06s)
+=== RUN   TestChatGPTRollbackPreservesNewerSettingsAndRemovesOwnedProfile
+--- PASS: TestChatGPTRollbackPreservesNewerSettingsAndRemovesOwnedProfile (0.07s)
+=== RUN   TestConfigureChatGPTRecoversPreRestoreStateRelease
+--- PASS: TestConfigureChatGPTRecoversPreRestoreStateRelease (0.09s)
+=== RUN   TestLaunchChatGPTUsesChildEnvironmentNotArguments
+    clientconfig_test.go:371: the Unix fixture is covered by native Windows launch acceptance
+--- SKIP: TestLaunchChatGPTUsesChildEnvironmentNotArguments (0.00s)
+=== RUN   TestConfigureJanPreservesSettingsAndRollsBack
+--- PASS: TestConfigureJanPreservesSettingsAndRollsBack (0.05s)
+=== RUN   TestConfigureGoosePreservesConfigAndSecrets
+--- PASS: TestConfigureGoosePreservesConfigAndSecrets (0.04s)
+=== RUN   TestRefusesRunningClientAndWrongGooseVersion
+--- PASS: TestRefusesRunningClientAndWrongGooseVersion (0.01s)
+=== RUN   TestWindowsSupervisionHelper
+--- PASS: TestWindowsSupervisionHelper (0.00s)
+=== RUN   TestWindowsStopTerminatesOwnedDescendants
+--- PASS: TestWindowsStopTerminatesOwnedDescendants (0.05s)
+=== RUN   TestWindowsSupervisorCrashTerminatesOwnedDescendants
+--- PASS: TestWindowsSupervisorCrashTerminatesOwnedDescendants (0.08s)
+PASS

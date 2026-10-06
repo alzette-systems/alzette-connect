@@ -1,0 +1,9 @@
+{
+  "chatgpt_process_count": 0,
+  "chatgpt_managed_provider": false,
+  "chatgpt_managed_catalog": false,
+  "claude_process_count": 0,
+  "claude_managed_entries": 0,
+  "claude_journal": false,
+  "private_input_absent": true
+}

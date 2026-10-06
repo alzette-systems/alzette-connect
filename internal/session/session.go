@@ -47,15 +47,16 @@ type Session struct {
 	metadata  Metadata
 	discovery Discovery
 
-	mu             sync.Mutex
-	accessToken    string
-	accessExpires  time.Time
-	contexts       []Context
-	selected       Context
-	clientInstance string
-	grantRevoked   bool
-	humanToken     string
-	humanExpires   time.Time
+	mu               sync.Mutex
+	contextRefreshMu sync.Mutex
+	accessToken      string
+	accessExpires    time.Time
+	contexts         []Context
+	selected         Context
+	clientInstance   string
+	grantRevoked     bool
+	humanToken       string
+	humanExpires     time.Time
 }
 
 func New(config Config) (*Session, error) {
@@ -330,6 +331,12 @@ func (s *Session) loadContexts(ctx context.Context) error {
 		return fmt.Errorf("read Alzette contexts: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode == http.StatusUnauthorized {
+		return ErrSignInRequired
+	}
+	if response.StatusCode >= 500 {
+		return errors.New("endpoint status service is unavailable")
+	}
 	var result contextsResponse
 	if response.StatusCode != http.StatusOK || decodeJSON(response.Body, &result) != nil || result.Schema != "alzette.agent-contexts.v1" {
 		return ErrAccessRemoved
@@ -345,6 +352,44 @@ func (s *Session) loadContexts(ctx context.Context) error {
 	s.contexts = cloneContexts(result.Contexts)
 	s.mu.Unlock()
 	return nil
+}
+
+// RefreshContexts refreshes presentation and entitlement without minting an
+// inference credential or opening the browser. Health-only changes retain the
+// selected alias set and the active application's credential.
+func (s *Session) RefreshContexts(ctx context.Context) error {
+	s.contextRefreshMu.Lock()
+	defer s.contextRefreshMu.Unlock()
+	s.mu.Lock()
+	expires := s.accessExpires
+	s.mu.Unlock()
+	if !s.config.Clock().Add(30 * time.Second).Before(expires) {
+		if err := s.refreshUnderStoreLock(ctx); err != nil {
+			return err
+		}
+	}
+	if err := s.loadContexts(ctx); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.selected.MembershipID == "" {
+		return nil
+	}
+	for _, current := range s.contexts {
+		if current.MembershipID == s.selected.MembershipID {
+			if !sameStrings(current.ModelAliases, s.selected.ModelAliases) {
+				s.humanToken = ""
+				s.humanExpires = time.Time{}
+			}
+			s.selected = cloneContext(current)
+			return nil
+		}
+	}
+	s.selected = Context{}
+	s.humanToken = ""
+	s.humanExpires = time.Time{}
+	return ErrAccessRemoved
 }
 
 func (s *Session) refreshUnderStoreLock(ctx context.Context) error {
@@ -479,6 +524,14 @@ func normalizeContext(value *Context) {
 
 func cloneModel(value Model) Model {
 	value.Capabilities = append([]string(nil), value.Capabilities...)
+	if value.ObservedAt != nil {
+		stamp := *value.ObservedAt
+		value.ObservedAt = &stamp
+	}
+	if value.FreshUntil != nil {
+		stamp := *value.FreshUntil
+		value.FreshUntil = &stamp
+	}
 	if value.ContextWindowTokens != nil {
 		contextWindow := *value.ContextWindowTokens
 		value.ContextWindowTokens = &contextWindow

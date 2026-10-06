@@ -1,0 +1,11 @@
+=== RUN   TestSnapshotIsCopiedAndContainsNoCredentialField
+--- PASS: TestSnapshotIsCopiedAndContainsNoCredentialField (0.00s)
+=== RUN   TestInferenceSessionCannotStartBeforeEmployeeSignIn
+--- PASS: TestInferenceSessionCannotStartBeforeEmployeeSignIn (0.00s)
+=== RUN   TestEndpointStatusSnapshotOwnsItsEvidence
+--- PASS: TestEndpointStatusSnapshotOwnsItsEvidence (0.00s)
+=== RUN   TestResumeWithoutProtectedLoginDoesNotStartBrowserFlow
+--- PASS: TestResumeWithoutProtectedLoginDoesNotStartBrowserFlow (0.00s)
+=== RUN   TestSubscribeReceivesCurrentAndUpdatedState
+--- PASS: TestSubscribeReceivesCurrentAndUpdatedState (0.00s)
+PASS

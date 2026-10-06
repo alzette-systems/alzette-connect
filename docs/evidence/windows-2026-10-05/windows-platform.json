@@ -1,0 +1,8 @@
+{
+    "build":  "26300",
+    "os":  "Microsoft Windows 11 Enterprise Evaluation",
+    "webview2":  [
+                     "154.0.4258.53"
+                 ],
+    "version":  "10.0.26300"
+}

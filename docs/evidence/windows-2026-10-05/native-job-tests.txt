@@ -1,0 +1,5 @@
+=== RUN   TestWindowsStopTerminatesOwnedDescendants
+--- PASS: TestWindowsStopTerminatesOwnedDescendants (0.06s)
+=== RUN   TestWindowsSupervisorCrashTerminatesOwnedDescendants
+--- PASS: TestWindowsSupervisorCrashTerminatesOwnedDescendants (0.07s)
+PASS

@@ -465,7 +465,15 @@ func ObserveChatGPTVersion(ctx context.Context, executable string) (string, erro
 		}
 		command = exec.CommandContext(check, "/usr/bin/plutil", "-extract", "CFBundleShortVersionString", "raw", "-o", "-", infoPath)
 	case "windows":
-		command = exec.CommandContext(check, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", `(Get-Item -LiteralPath $args[0]).VersionInfo.ProductVersion`, executable)
+		packageInfo, err := inspectWindowsChatGPT(check)
+		if err != nil {
+			return "", err
+		}
+		trustedPath, err := validatedWindowsChatGPTPath(packageInfo)
+		if err != nil || !strings.EqualFold(filepath.Clean(executable), trustedPath) {
+			return "", fmt.Errorf("%w: executable does not match the registered ChatGPT package", ErrUnsupported)
+		}
+		return packageInfo.Version, nil
 	default:
 		return "", ErrUnsupported
 	}

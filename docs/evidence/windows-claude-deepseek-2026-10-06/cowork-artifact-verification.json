@@ -1,0 +1,38 @@
+{
+  "linux_python_proof": true,
+  "csv_rows": 10,
+  "sum_squares": 385,
+  "xlsx_formulas": {
+    "B2": "A2*A2",
+    "B3": "A3*A3",
+    "B4": "A4*A4",
+    "B5": "A5*A5",
+    "B6": "A6*A6",
+    "B7": "A7*A7",
+    "B8": "A8*A8",
+    "B9": "A9*A9",
+    "B10": "A10*A10",
+    "B11": "A11*A11",
+    "B12": "SUM(B2:B11)"
+  },
+  "xlsx_formula_cached_results": "not claimed; openpyxl writes formulas, Excel recalculates",
+  "files": {
+    "cowork-proof.txt": {
+      "bytes": 27,
+      "sha256": "28c278307b60d5b7a90905dce49118e2b7997c923f098659c6704f56f19e0351"
+    },
+    "totals.xlsx": {
+      "bytes": 5033,
+      "sha256": "9d8dffb0beb9f67b7f61a7eaf58d547c02fa8c9a0c72fe77e67644886a1f03bb"
+    },
+    "totals.csv": {
+      "bytes": 69,
+      "sha256": "9cf40195f4992fe39961a2916d41c8ad5f50d25b7f59ad074571128fe4b48e70"
+    },
+    "flash-proof.txt": {
+      "bytes": 34,
+      "sha256": "4977b8f047c0fe75f28d966811e1176dfdc0c24967fd1231e85a28801d8e17b2"
+    }
+  },
+  "flash_python_read_write_verify": true
+}

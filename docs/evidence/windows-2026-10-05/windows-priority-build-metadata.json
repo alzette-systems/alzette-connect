@@ -1,0 +1,68 @@
+{
+  "captured_at": "2026-10-05T15:15:05.168979+00:00",
+  "scope": "Windows ChatGPT and Claude Desktop; macOS independent; other clients deferred",
+  "source_commit": "c3f259fb3774e35eaccf6b5e3fe1fd3bf04e7f00",
+  "source_state": "dirty; includes ongoing shared-workspace changes",
+  "go": "go version go1.26.5 linux/amd64",
+  "artifacts": [
+    {
+      "name": "Alzette-Connect-windows-candidate-job.exe",
+      "role": "internal Connect candidate and native Claude helper",
+      "sha256": "94a96d623b02b0290e9ab6d12d806dcd5f8d488efb17845ed48e2e27717a7a19",
+      "bytes": 18485760
+    },
+    {
+      "name": "windows-claude-job-qa.exe",
+      "role": "native Claude fixture",
+      "sha256": "355e90b976316963427e4d5cf1934dbc0a323f18faab65c1b8d5cf7a2268b14a",
+      "bytes": 10433536
+    },
+    {
+      "name": "windows-chatgpt-job-qa.exe",
+      "role": "native ChatGPT fixture",
+      "sha256": "d82225fb5078360919d6fe526a99afa52fe3ad0f58b119aff7074ac8b10917c8",
+      "bytes": 10738176
+    },
+    {
+      "name": "windows-oidc-job-qa.exe",
+      "role": "live Windows OIDC and ChatGPT driver",
+      "sha256": "1192aad31901206d4e1174bfdb63af3ac631059887643cbdab82ea27fcf10407",
+      "bytes": 10871808
+    },
+    {
+      "name": "clientconfig-job.test.exe",
+      "role": "native clientconfig tests",
+      "sha256": "adbee7b25523637fc15c512adb4b797e73de941d65eb1acd8eb6473958dd1644",
+      "bytes": 12029952
+    },
+    {
+      "name": "credentialstore-final.test.exe",
+      "role": "native protected-store tests",
+      "sha256": "8503f7a19c67bd28415c0449a5c74be19e7fa16529c00316066ec2a336076de3",
+      "bytes": 5326336
+    },
+    {
+      "name": "proxy-final.test.exe",
+      "role": "native proxy tests",
+      "sha256": "014b8f98d3d8d9733854bae9cc90496773fab20592d810a492fa6eb8ee2d1748",
+      "bytes": 10638848
+    },
+    {
+      "name": "session-final.test.exe",
+      "role": "native session tests",
+      "sha256": "2655f6d02b275454fadaca5d3604cac38615c46b4f594cd88657f6aa211fb99b",
+      "bytes": 10901504
+    }
+  ],
+  "verification": {
+    "linux_go_test_gtk3": "passed",
+    "linux_go_vet_gtk3": "passed",
+    "windows_go_vet": "passed",
+    "native_windows_suite_exit_codes": {
+      "clientconfig-job": 0,
+      "proxy-final": 0,
+      "credentialstore-final": 0,
+      "session-final": 0
+    }
+  }
+}

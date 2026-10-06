@@ -89,6 +89,19 @@ Windows, or a `.deb` on Ubuntu, plus a SHA-256 file. The packages embed an
 **Desktop Downloads** workflow runs this command independently on the target
 GitHub-hosted operating systems and retains its artifacts for 30 days.
 
+For a Windows-only candidate, dispatch **Desktop Downloads** with the desired
+demo version and `platform=windows`. This runs verification, compilation and
+NSIS packaging on a native Windows runner without rebuilding the other platforms:
+
+```sh
+gh workflow run desktop-downloads.yml --ref main \
+  -f version=0.3.12-demo.1 -f platform=windows
+```
+
+Add `-f publish=true` to publish the successful packages as an unsigned demo
+prerelease. The version must have the form `X.Y.Z-demo.N`; existing release
+assets are never replaced.
+
 ## Outputs
 
 Wails writes intermediate build/package files under its configured build tree.

@@ -84,6 +84,12 @@ test("stale authority, terminal access, large catalogues, and tray fallback stay
   assert.doesNotMatch(html, /role="listbox"/);
 });
 
+test("account menu Escape handling closes the popup and restores trigger focus", async () => {
+  const script = await read("app.js");
+  assert.match(script, /event\.key !== "Escape" \|\| accountMenu\.hidden/);
+  assert.match(script, /accountMenu\.hidden = true;\s*menuButton\.setAttribute\("aria-expanded", "false"\);\s*menuButton\.focus\(\{ preventScroll: true \}\)/);
+});
+
 test("document IDs are unique and live regions are bounded", async () => {
   const html = await read("index.html");
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);

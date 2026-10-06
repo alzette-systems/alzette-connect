@@ -19,6 +19,7 @@ var (
 	ErrConflict      = errors.New("client configuration conflicts with an unowned entry")
 	ErrSecretStore   = errors.New("client protected credential store is unavailable")
 	ErrStaleRollback = errors.New("configuration changed since it was applied")
+	ErrClaudeModels  = errors.New("Claude Desktop requires an assigned company model")
 )
 
 type Client string
@@ -27,6 +28,7 @@ const (
 	Jan     Client = "jan"
 	Goose   Client = "goose"
 	ChatGPT Client = "chatgpt"
+	Claude  Client = "claude"
 )
 
 type Connection struct {
@@ -36,6 +38,8 @@ type Connection struct {
 	Capability string
 	Models     []string
 	Catalog    []Model
+	// ModelAliases is a Claude-only transport map to actual authorised routes.
+	ModelAliases map[string]string
 }
 
 type Model struct {
@@ -68,6 +72,15 @@ type ChatGPTRequest struct {
 	ConfigPath     string
 	ExecutablePath string
 	Version        string
+}
+
+type ClaudeRequest struct {
+	Connection           Connection
+	ExecutablePath       string
+	HelperExecutablePath string
+	// LibraryDir is an explicit configuration-library override for tests.
+	LibraryDir string
+	Version    string
 }
 
 type Status string

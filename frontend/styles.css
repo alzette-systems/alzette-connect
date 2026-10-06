@@ -332,6 +332,9 @@ button.catalogue-summary:hover { background: #fbfcfa; }
 .model-drawer li b { font-family: var(--mono); font-size: 10px; }
 .model-drawer li small { color: var(--faint); font-size: 9px; }
 .model-drawer li em { color: var(--green-deep); font-size: 9px; font-style: normal; }
+.model-drawer li em.state--warning { color: var(--warning); }
+.model-drawer li em.state--unavailable { color: var(--danger); }
+.model-drawer li em.state--choice { color: var(--dim); }
 .model-drawer__empty { margin: 0; padding: 12px 0; color: var(--dim); font-size: 11px; }
 
 .application-region { min-height: 0; padding: 16px 20px 10px; overflow: auto; }

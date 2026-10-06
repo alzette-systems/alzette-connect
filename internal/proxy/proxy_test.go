@@ -56,6 +56,7 @@ func TestStrictLoopbackProxyForwardsOnlySupportedRequests(t *testing.T) {
 
 	request, _ := http.NewRequest(http.MethodPost, server.BaseURL()+"/chat/completions", strings.NewReader(`{"model":"alzette-chat","messages":[]}`))
 	request.Header.Set("Authorization", "Bearer "+server.Capability())
+	request.Header.Set("Connection", "keep-alive")
 	request.Header.Set("Content-Type", "application/json")
 	response, err = http.DefaultClient.Do(request)
 	if err != nil {
@@ -114,6 +115,29 @@ func TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput(t *testing.T) {
 			response.Body.Close()
 			if response.StatusCode != test.want {
 				t.Fatalf("status=%d want=%d", response.StatusCode, test.want)
+			}
+		})
+	}
+}
+
+func TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint(t *testing.T) {
+	tests := []struct {
+		name   string
+		header http.Header
+		unsafe bool
+	}{
+		{name: "absent", header: http.Header{}},
+		{name: "node keep alive", header: http.Header{"Connection": {"keep-alive"}}},
+		{name: "case insensitive keep alive", header: http.Header{"Connection": {"Keep-Alive"}}},
+		{name: "close", header: http.Header{"Connection": {"close"}}, unsafe: true},
+		{name: "header nomination", header: http.Header{"Connection": {"keep-alive, X-Smuggled"}}, unsafe: true},
+		{name: "multiple values", header: http.Header{"Connection": {"keep-alive", "keep-alive"}}, unsafe: true},
+		{name: "upgrade", header: http.Header{"Upgrade": {"websocket"}}, unsafe: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := hasForwardingHeader(test.header); got != test.unsafe {
+				t.Fatalf("hasForwardingHeader()=%t want=%t", got, test.unsafe)
 			}
 		})
 	}

@@ -1,0 +1,291 @@
+{
+    "leases": [
+        {
+            "state": "settled",
+            "request_id": "req_c2915c6af7281c6a0f0dec9f30e8f831",
+            "settled_at": "2026-10-05T14:35:59.039615+00:00",
+            "admitted_at": "2026-10-05T14:35:58.025026+00:00",
+            "reserved_tokens": 105
+        },
+        {
+            "state": "overrun_pending",
+            "request_id": "req_3b14ec9e3ac47cc2a5161171efc4bd6d",
+            "settled_at": null,
+            "admitted_at": "2026-10-05T14:35:59.099304+00:00",
+            "reserved_tokens": 103
+        },
+        {
+            "state": "settled",
+            "request_id": "req_2e2220857658353180e536f47190ba05",
+            "settled_at": "2026-10-05T14:43:35.798978+00:00",
+            "admitted_at": "2026-10-05T14:43:34.783113+00:00",
+            "reserved_tokens": 92940
+        },
+        {
+            "state": "settled",
+            "request_id": "req_d4cdea789d39e0212a48dd5c4fed9af1",
+            "settled_at": "2026-10-06T08:01:46.005568+00:00",
+            "admitted_at": "2026-10-06T08:01:44.056492+00:00",
+            "reserved_tokens": 2150
+        },
+        {
+            "state": "settled",
+            "request_id": "req_e77fa7b5556d982f47fa8a448e050df0",
+            "settled_at": "2026-10-06T08:03:37.27097+00:00",
+            "admitted_at": "2026-10-06T08:03:35.722969+00:00",
+            "reserved_tokens": 2150
+        },
+        {
+            "state": "settled",
+            "request_id": "req_c98d0d4d9384275dda8257dec5c22bb1",
+            "settled_at": "2026-10-06T08:03:42.804143+00:00",
+            "admitted_at": "2026-10-06T08:03:38.443974+00:00",
+            "reserved_tokens": 216748
+        },
+        {
+            "state": "settled",
+            "request_id": "req_ae39e658e1a4ee0949d81359b10e090e",
+            "settled_at": "2026-10-06T08:08:22.042591+00:00",
+            "admitted_at": "2026-10-06T08:08:20.965027+00:00",
+            "reserved_tokens": 2646
+        },
+        {
+            "state": "settled",
+            "request_id": "req_a1d41cfa6bdc0b33781fec28678576ac",
+            "settled_at": "2026-10-06T08:10:08.662041+00:00",
+            "admitted_at": "2026-10-06T08:10:02.51577+00:00",
+            "reserved_tokens": 290605
+        },
+        {
+            "state": "settled",
+            "request_id": "req_260759560c061ace28f89b51a97c15d5",
+            "settled_at": "2026-10-06T08:10:13.59761+00:00",
+            "admitted_at": "2026-10-06T08:10:12.221991+00:00",
+            "reserved_tokens": 291212
+        },
+        {
+            "state": "settled",
+            "request_id": "req_ee00387af998ce99166f6c0eee819f84",
+            "settled_at": "2026-10-06T08:10:15.20252+00:00",
+            "admitted_at": "2026-10-06T08:10:13.727094+00:00",
+            "reserved_tokens": 292762
+        },
+        {
+            "state": "settled",
+            "request_id": "req_2fdb9fda1009dca1cb5911dd6dd63134",
+            "settled_at": "2026-10-06T08:12:59.042217+00:00",
+            "admitted_at": "2026-10-06T08:12:58.068942+00:00",
+            "reserved_tokens": 541
+        },
+        {
+            "state": "settled",
+            "request_id": "req_9010c0ceb6b60a2abd704f7f844cfbb0",
+            "settled_at": "2026-10-06T08:13:08.918807+00:00",
+            "admitted_at": "2026-10-06T08:13:07.377424+00:00",
+            "reserved_tokens": 260408
+        },
+        {
+            "state": "settled",
+            "request_id": "req_604e09a1989be6328fea6b289106301c",
+            "settled_at": "2026-10-06T08:17:05.386818+00:00",
+            "admitted_at": "2026-10-06T08:17:03.925246+00:00",
+            "reserved_tokens": 2589
+        },
+        {
+            "state": "settled",
+            "request_id": "req_9ce6d145fb83e7673a2cceafa8754bad",
+            "settled_at": "2026-10-06T08:17:09.146984+00:00",
+            "admitted_at": "2026-10-06T08:17:06.770402+00:00",
+            "reserved_tokens": 290259
+        },
+        {
+            "state": "settled",
+            "request_id": "req_14bb6ce8683b35e320d14ed27642900d",
+            "settled_at": "2026-10-06T08:23:51.93323+00:00",
+            "admitted_at": "2026-10-06T08:23:50.74046+00:00",
+            "reserved_tokens": 92966
+        }
+    ],
+    "meter_events": [
+        {
+            "request_id": "req_d4cdea789d39e0212a48dd5c4fed9af1",
+            "occurred_at": "2026-10-06T08:01:46.005568+00:00",
+            "input_tokens": 404,
+            "rating_basis": "provider_final",
+            "output_tokens": 263,
+            "charged_tokens": 667,
+            "usage_finality": "final",
+            "released_tokens": 1483,
+            "reserved_tokens": 2150,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 246,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_e77fa7b5556d982f47fa8a448e050df0",
+            "occurred_at": "2026-10-06T08:03:37.27097+00:00",
+            "input_tokens": 404,
+            "rating_basis": "provider_final",
+            "output_tokens": 71,
+            "charged_tokens": 475,
+            "usage_finality": "final",
+            "released_tokens": 1675,
+            "reserved_tokens": 2150,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 61,
+            "cached_read_tokens": 256,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_c98d0d4d9384275dda8257dec5c22bb1",
+            "occurred_at": "2026-10-06T08:03:42.804143+00:00",
+            "input_tokens": 35521,
+            "rating_basis": "provider_final",
+            "output_tokens": 11,
+            "charged_tokens": 35532,
+            "usage_finality": "final",
+            "released_tokens": 181216,
+            "reserved_tokens": 216748,
+            "invocation_alias": "qa-shared-pro",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_ae39e658e1a4ee0949d81359b10e090e",
+            "occurred_at": "2026-10-06T08:08:22.042591+00:00",
+            "input_tokens": 524,
+            "rating_basis": "provider_final",
+            "output_tokens": 132,
+            "charged_tokens": 656,
+            "usage_finality": "final",
+            "released_tokens": 1990,
+            "reserved_tokens": 2646,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 108,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_a1d41cfa6bdc0b33781fec28678576ac",
+            "occurred_at": "2026-10-06T08:10:08.662041+00:00",
+            "input_tokens": 54866,
+            "rating_basis": "provider_final",
+            "output_tokens": 88,
+            "charged_tokens": 54954,
+            "usage_finality": "final",
+            "released_tokens": 235651,
+            "reserved_tokens": 290605,
+            "invocation_alias": "qa-shared-pro",
+            "reasoning_tokens": 14,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_260759560c061ace28f89b51a97c15d5",
+            "occurred_at": "2026-10-06T08:10:13.59761+00:00",
+            "input_tokens": 55003,
+            "rating_basis": "provider_final",
+            "output_tokens": 11,
+            "charged_tokens": 55014,
+            "usage_finality": "final",
+            "released_tokens": 236198,
+            "reserved_tokens": 291212,
+            "invocation_alias": "qa-shared-pro",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 54912,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_ee00387af998ce99166f6c0eee819f84",
+            "occurred_at": "2026-10-06T08:10:15.20252+00:00",
+            "input_tokens": 55336,
+            "rating_basis": "provider_final",
+            "output_tokens": 3,
+            "charged_tokens": 55339,
+            "usage_finality": "final",
+            "released_tokens": 237423,
+            "reserved_tokens": 292762,
+            "invocation_alias": "qa-shared-pro",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 54912,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_2fdb9fda1009dca1cb5911dd6dd63134",
+            "occurred_at": "2026-10-06T08:12:59.042217+00:00",
+            "input_tokens": 44,
+            "rating_basis": "provider_final",
+            "output_tokens": 12,
+            "charged_tokens": 56,
+            "usage_finality": "final",
+            "released_tokens": 485,
+            "reserved_tokens": 541,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_9010c0ceb6b60a2abd704f7f844cfbb0",
+            "occurred_at": "2026-10-06T08:13:08.918807+00:00",
+            "input_tokens": 55246,
+            "rating_basis": "provider_final",
+            "output_tokens": 11,
+            "charged_tokens": 55257,
+            "usage_finality": "final",
+            "released_tokens": 205151,
+            "reserved_tokens": 260408,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_604e09a1989be6328fea6b289106301c",
+            "occurred_at": "2026-10-06T08:17:05.386818+00:00",
+            "input_tokens": 513,
+            "rating_basis": "provider_final",
+            "output_tokens": 196,
+            "charged_tokens": 709,
+            "usage_finality": "final",
+            "released_tokens": 1880,
+            "reserved_tokens": 2589,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 162,
+            "cached_read_tokens": 256,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_9ce6d145fb83e7673a2cceafa8754bad",
+            "occurred_at": "2026-10-06T08:17:09.146984+00:00",
+            "input_tokens": 54879,
+            "rating_basis": "provider_final",
+            "output_tokens": 11,
+            "charged_tokens": 54890,
+            "usage_finality": "final",
+            "released_tokens": 235369,
+            "reserved_tokens": 290259,
+            "invocation_alias": "qa-shared-pro",
+            "reasoning_tokens": 0,
+            "cached_read_tokens": 0,
+            "cached_write_tokens": 0
+        },
+        {
+            "request_id": "req_14bb6ce8683b35e320d14ed27642900d",
+            "occurred_at": "2026-10-06T08:23:51.93323+00:00",
+            "input_tokens": 21328,
+            "rating_basis": "provider_final",
+            "output_tokens": 49,
+            "charged_tokens": 21377,
+            "usage_finality": "final",
+            "released_tokens": 71589,
+            "reserved_tokens": 92966,
+            "invocation_alias": "qa-shared-flash",
+            "reasoning_tokens": 37,
+            "cached_read_tokens": 18048,
+            "cached_write_tokens": 0
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+2026-10-05 16:39:22 [info] [VM:steps] guest_ready completed (0ms)
+2026-10-05 16:39:23 [info] [VM:steps] add_plan9_shares completed (10346ms)
+2026-10-05 16:39:31 [info] [VM:start] Startup complete, total time: 57785ms
+2026-10-06 10:01:51 [info] [VM:steps] guest_ready completed (0ms)
+2026-10-06 10:01:51 [info] [VM:steps] add_plan9_shares completed (6426ms)
+2026-10-06 10:01:56 [info] [VM:start] Startup complete, total time: 12398ms
+2026-10-06 10:46:10 [info] [VM:steps] guest_ready completed (0ms)
+2026-10-06 10:46:10 [info] [VM:steps] add_plan9_shares completed (7126ms)
+2026-10-06 10:46:15 [info] [VM:start] Startup complete, total time: 14027ms

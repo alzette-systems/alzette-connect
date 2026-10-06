@@ -1,0 +1,47 @@
+=== RUN   TestStrictLoopbackProxyForwardsOnlySupportedRequests
+--- PASS: TestStrictLoopbackProxyForwardsOnlySupportedRequests (0.00s)
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/wrong_key
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/origin
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/cookie
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/content_encoding
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/forwarded
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/query
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/encoded_path
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/lookalike_content_type
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/method
+=== RUN   TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/unsupported_messages
+--- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/wrong_key (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/origin (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/cookie (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/content_encoding (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/forwarded (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/query (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/encoded_path (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/lookalike_content_type (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/method (0.00s)
+    --- PASS: TestStrictLoopbackProxyRejectsAmbientBrowserAndProxyInput/unsupported_messages (0.00s)
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/absent
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/node_keep_alive
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/case_insensitive_keep_alive
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/close
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/header_nomination
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/multiple_values
+=== RUN   TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/upgrade
+--- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/absent (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/node_keep_alive (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/case_insensitive_keep_alive (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/close (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/header_nomination (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/multiple_values (0.00s)
+    --- PASS: TestLoopbackProxyAllowsOnlyHarmlessConnectionPersistenceHint/upgrade (0.00s)
+=== RUN   TestProcessCapabilityIsScopedToItsAdapterProtocol
+--- PASS: TestProcessCapabilityIsScopedToItsAdapterProtocol (0.00s)
+=== RUN   TestStartRejectsNonLoopback
+--- PASS: TestStartRejectsNonLoopback (0.00s)
+=== RUN   TestStartRejectsPlainHTTPRemoteGateway
+--- PASS: TestStartRejectsPlainHTTPRemoteGateway (0.00s)
+PASS

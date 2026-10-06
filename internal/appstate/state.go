@@ -4,6 +4,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/alzette-systems/alzette-connect/internal/session"
 )
 
 // Phase is deliberately small and UI-oriented. It never carries a credential
@@ -23,11 +25,12 @@ const (
 )
 
 type Context struct {
-	ID           string   `json:"id"`
-	Organisation string   `json:"organisation"`
-	Project      string   `json:"project"`
-	Environment  string   `json:"environment"`
-	Models       []string `json:"models"`
+	ID           string          `json:"id"`
+	Organisation string          `json:"organisation"`
+	Project      string          `json:"project"`
+	Environment  string          `json:"environment"`
+	Models       []string        `json:"models"`
+	Endpoints    []session.Model `json:"endpoints,omitempty"`
 }
 
 type Application struct {
@@ -144,6 +147,23 @@ func cloneContexts(values []Context) []Context {
 	result := append([]Context(nil), values...)
 	for index := range result {
 		result[index].Models = append([]string(nil), result[index].Models...)
+		result[index].Endpoints = append([]session.Model(nil), result[index].Endpoints...)
+		for j := range result[index].Endpoints {
+			m := &result[index].Endpoints[j]
+			m.Capabilities = append([]string(nil), m.Capabilities...)
+			if m.ObservedAt != nil {
+				stamp := *m.ObservedAt
+				m.ObservedAt = &stamp
+			}
+			if m.FreshUntil != nil {
+				stamp := *m.FreshUntil
+				m.FreshUntil = &stamp
+			}
+			if m.ContextWindowTokens != nil {
+				v := *m.ContextWindowTokens
+				m.ContextWindowTokens = &v
+			}
+		}
 		sort.Strings(result[index].Models)
 	}
 	return result

@@ -1,0 +1,11 @@
+{
+    "executable":  "app\\Claude.exe",
+    "entry_point":  "Windows.FullTrustApplication",
+    "version":  "2.19675.0.0",
+    "virtual_machine_platform":  "Disabled",
+    "signature_kind":  "Developer",
+    "name":  "Claude",
+    "publisher":  "CN=\"Anthropic, PBC\", O=\"Anthropic, PBC\", L=San Francisco, S=California, C=US, SERIALNUMBER=4860621, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=Delaware, OID.1.3.6.1.4.1.311.60.2.1.3=US",
+    "location":  "C:\\Program Files\\WindowsApps\\Claude_2.19675.0.0_x64__pzs8sxrjxfjjc",
+    "status":  "Ok"
+}

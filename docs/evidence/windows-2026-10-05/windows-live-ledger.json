@@ -1,0 +1,53 @@
+{
+  "captured_at": "2026-10-05T15:03:18.689078+00:00",
+  "requests": [
+    {
+      "id": "req_c2915c6af7281c6a0f0dec9f30e8f831",
+      "started_at": "2026-10-05T14:35:58.025026+00:00",
+      "status": "succeeded",
+      "http_status": 200,
+      "error_class": null,
+      "model_alias": "qa-shared-flash",
+      "input_tokens": 34,
+      "output_tokens": 2,
+      "total_tokens": 36,
+      "attempt_count": 1
+    },
+    {
+      "id": "req_3b14ec9e3ac47cc2a5161171efc4bd6d",
+      "started_at": "2026-10-05T14:35:59.099304+00:00",
+      "status": "succeeded",
+      "http_status": 200,
+      "error_class": null,
+      "model_alias": "qa-shared-pro",
+      "input_tokens": 87,
+      "output_tokens": 22,
+      "total_tokens": 109,
+      "attempt_count": 1
+    },
+    {
+      "id": "req_2e2220857658353180e536f47190ba05",
+      "started_at": "2026-10-05T14:43:34.783113+00:00",
+      "status": "succeeded",
+      "http_status": 200,
+      "error_class": null,
+      "model_alias": "qa-shared-flash",
+      "input_tokens": 21339,
+      "output_tokens": 2,
+      "total_tokens": 21341,
+      "attempt_count": 1
+    },
+    {
+      "id": "req_15b535280d2a30d0925a489f2b9b6787",
+      "started_at": "2026-10-05T14:59:04.566795+00:00",
+      "status": "blocked",
+      "http_status": 429,
+      "error_class": "usage_limit_exceeded",
+      "model_alias": "qa-shared-flash",
+      "input_tokens": null,
+      "output_tokens": null,
+      "total_tokens": null,
+      "attempt_count": 0
+    }
+  ]
+}
