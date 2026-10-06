@@ -11,3 +11,10 @@ Regression checks exercise the current server payload on initial context loading
 Local verification: packaging checks, frontend build and 12 tests, all Go tests, race tests and vet passed. The 0.3.9 decoder failure was independently reproduced using the exact response structs from its release tag.
 
 The repair is prepared for signed macOS release 0.3.12. Native package signing, notarization and publication are performed by the existing release workflow; local Debian tests do not establish native macOS login or desktop application acceptance.
+
+## Release attempt
+
+- Fix commit: `80e989b3838364fde88cc9ff7afc6fe459a5e471`.
+- [Cross-platform CI](https://github.com/alzette-systems/alzette-connect/actions/runs/37457163820) passed on Linux, Windows and macOS.
+- [Signed macOS release attempt](https://github.com/alzette-systems/alzette-connect/actions/runs/37457173423): Apple Silicon source checks, compilation and Developer ID signature verification passed. Apple's notarization service returned HTTP 403 because a required agreement is missing or expired. No notarized 0.3.12 release was published.
+- The Apple Developer Account Holder must review the pending agreement before retrying notarization. Signing credentials were removed by the workflow's cleanup step. The production release gate was retained.
