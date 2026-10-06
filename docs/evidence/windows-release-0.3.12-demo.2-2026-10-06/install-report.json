@@ -1,0 +1,14 @@
+{
+  "version": "0.3.12-demo.2",
+  "upgraded_from": "0.3.12-demo.1",
+  "pe_subsystem": 2,
+  "installer_exit": 0,
+  "per_user_install": true,
+  "installer_sha256": "ca62ead4e3f544e9e3ada4687b946e89c2a000b4e10f84b92c1baa0d296205c7",
+  "application_sha256": "49fb1720790373765623422c65c7ed6a411a462b09aeb503a883772eaf61a1a6",
+  "signature": "NotSigned",
+  "required_files_present": true,
+  "client_profiles_unchanged": true,
+  "automatic_launch": false,
+  "notice": "Alzette Connect 0.3.12-demo.2 \u2014 unsigned demo build\n\nSource commit: 7058b882bb7f06e7391c236feb245dc8f3159d8c\nTarget: windows/x64\n\nThis build is intended for internal demonstration and acceptance testing.\nIt has not completed Alzette's production signing, notarization, clean-machine,\nor customer release gates. Do not redistribute it as a production release.\n"
+}

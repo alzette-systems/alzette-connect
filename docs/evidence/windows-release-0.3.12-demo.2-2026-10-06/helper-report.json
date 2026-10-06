@@ -1,0 +1,7 @@
+{
+  "credential_removed": true,
+  "gui_helper_stdout_verified": true,
+  "loopback_authorization_verified": true,
+  "missing_credential_rejected": true,
+  "paid_inference": false
+}
