@@ -50,6 +50,7 @@ tasks:
     summary: Build the native desktop application for the host platform.
     deps: [frontend]
     cmds:
+      - bash scripts/prepare-windows-resources.sh '{{.VERSION}}'
       - mkdir -p {{.BIN_DIR}}
       - go build -trimpath -ldflags '{{if eq OS "windows"}}-H windowsgui {{end}}-X main.version={{.VERSION}} -X main.chatGPTCandidateEnabled={{.CHATGPT_CANDIDATE}}' {{if eq OS "windows"}}-tags 'production{{if .EXTRA_TAGS}},{{.EXTRA_TAGS}}{{end}}'{{else}}{{if .EXTRA_TAGS}}-tags '{{.EXTRA_TAGS}}'{{end}}{{end}} -o {{.BIN_DIR}}/{{.APP_NAME}}{{if eq OS "windows"}}.exe{{end}} .
 

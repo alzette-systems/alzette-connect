@@ -115,6 +115,9 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
 		},
 	})
+	if !desktopPrerequisitesReady(app) {
+		return
+	}
 	desktop.app = app
 	app.OnShutdown(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)

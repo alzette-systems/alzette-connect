@@ -1,0 +1,12 @@
+{
+    "file_version":  "0.3.14-windows-qa",
+    "product_version":  "0.3.14-windows-qa",
+    "company":  "Alzette Systems",
+    "description":  "Securely connects supported desktop AI clients to company-authorised Alzette models.",
+    "original_filename":  "alzette-connect.exe",
+    "fixed_file_version":  "0.3.14.0",
+    "fixed_product_version":  "0.3.14.0",
+    "candidate_sha256":  "2F44020074FD5C3A88FB231D35E19A895CFE9CED4C2A6E84D922EC3F1037E196",
+    "build_exit":  "0",
+    "passed":  true
+}

@@ -1,0 +1,19 @@
+{
+    "installed_version":  "0.3.12-demo.2",
+    "executable_file_version":  null,
+    "executable_product_version":  null,
+    "installer_sha256":  "ca62ead4e3f544e9e3ada4687b946e89c2a000b4e10f84b92c1baa0d296205c7",
+    "installer_signature":  "NotSigned",
+    "executable_signature":  "NotSigned",
+    "webview2_versions":  [
+                              "154.0.4258.53",
+                              "154.0.4258.62",
+                              "PlatformExperiencesHelper",
+                              "SetupMetrics"
+                          ],
+    "windows_version":  {
+                            "Caption":  "Microsoft Windows 11 Enterprise Evaluation",
+                            "Version":  "10.0.26300",
+                            "BuildNumber":  "26300"
+                        }
+}

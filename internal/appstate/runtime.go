@@ -426,6 +426,8 @@ func (r *Runtime) fail(err error) {
 		r.set(SignInRequired, "Sign-in was not completed", "sign_in_cancelled", nil)
 	case errors.Is(err, session.ErrSignInRequired):
 		r.set(SignInRequired, "Sign in to continue", "sign_in_required", nil)
+	case errors.Is(err, session.ErrCallbackPortInUse):
+		r.set(Failed, "The local sign-in port is busy. Close the other sign-in window or application, then try again.", "sign_in_port_in_use", nil)
 	case errors.Is(err, session.ErrAccessRemoved):
 		r.set(AccessRemoved, "Your company access has ended", "access_removed", nil)
 	case errors.Is(err, credentialstore.ErrUnavailable):

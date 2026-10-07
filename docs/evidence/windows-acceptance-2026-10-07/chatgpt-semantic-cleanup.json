@@ -1,0 +1,11 @@
+{
+  "raw_semantic_equal": false,
+  "stable_semantic_equal": true,
+  "baseline_stable_sha256": "10f632d98a136ba4fa67b8c5508a4e41416d7b28019345ede0b19ffb1c4e6762",
+  "after_stable_sha256": "10f632d98a136ba4fa67b8c5508a4e41416d7b28019345ede0b19ffb1c4e6762",
+  "ignored_client_runtime_paths": [
+    "mcp_servers.node_repl.env.SKY_CUA_NATIVE_PIPE_DIRECTORY"
+  ],
+  "managed_provider_absent": true,
+  "managed_profile_absent": true
+}

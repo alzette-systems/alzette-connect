@@ -1,0 +1,9 @@
+ok  	github.com/alzette-systems/alzette-connect	0.091s
+?   	github.com/alzette-systems/alzette-connect/cmd/alzette-connect-core	[no test files]
+ok  	github.com/alzette-systems/alzette-connect/internal/appstate	0.035s
+ok  	github.com/alzette-systems/alzette-connect/internal/clientconfig	0.236s
+ok  	github.com/alzette-systems/alzette-connect/internal/credentialstore	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/platform	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/proxy	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/session	0.017s
+ok  	github.com/alzette-systems/alzette-connect/internal/updater	(cached)

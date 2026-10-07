@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -27,6 +28,32 @@ type reconnectFixture struct {
 	rejectCode    atomic.Bool
 	tokenStatus   atomic.Int64
 	mintStatus    atomic.Int64
+}
+
+func TestReconnectAfterCallbackPortConflict(t *testing.T) {
+	f := newReconnectFixture(t)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	f.runtime.config.CallbackURL = "http://" + listener.Addr().String() + "/callback"
+	if err := f.runtime.Connect(context.Background(), ""); !errors.Is(err, session.ErrCallbackPortInUse) {
+		t.Fatalf("occupied callback port: %v", err)
+	}
+	if snapshot := f.runtime.State().Current(); snapshot.Phase != Failed || snapshot.ErrorCode != "sign_in_port_in_use" {
+		t.Fatalf("occupied port state=%s code=%s", snapshot.Phase, snapshot.ErrorCode)
+	}
+	if f.browserCalls.Load() != 0 {
+		t.Fatal("occupied port opened browser authentication")
+	}
+	if err := listener.Close(); err != nil {
+		t.Fatal(err)
+	}
+	f.connect(t)
+	if f.browserCalls.Load() != 1 {
+		t.Fatal("retry did not open browser authentication")
+	}
 }
 
 func newReconnectFixture(t *testing.T) *reconnectFixture {

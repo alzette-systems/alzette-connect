@@ -1,0 +1,165 @@
+Packaging source checks passed.
+Wails v3.0.0-alpha2.114 › Generate Bindings
+[30;46m[30;46m INFO [0m[0m [96m[96mProcessed: 256 Packages, 1 Service, 15 Methods, 1 Enum, 6 Models, 1 Event in 3.4998122s.[0m[0m
+[30;46m[30;46m INFO [0m[0m [96m[96mOutput directory: C:\AlzetteQA\acceptance-source\frontend\bindings[0m[0m
+
+added 16 packages, and audited 17 packages in 2s
+
+8 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> @alzette/connect-frontend@0.1.0 pretest
+> npm run build
+
+
+> @alzette/connect-frontend@0.1.0 build
+> vite build --mode production
+
+[36mvite v8.2.1 [32mbuilding client environment for production...[36m[39m
+[2K
+transforming...✓ 45 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/alzette-mark-DiwqA3Yo.svg   0.90 kB │ gzip:  0.56 kB
+dist/assets/chatgpt-DrbHm6rM.svg        4.25 kB │ gzip:  1.97 kB
+dist/index.html                        16.48 kB │ gzip:  4.47 kB
+dist/assets/jan-kvMpL76E.png           36.89 kB
+dist/assets/index-XZzVs2HV.css         32.13 kB │ gzip:  6.79 kB
+dist/assets/native-B0Zxj3Qg.js         28.94 kB │ gzip: 10.02 kB
+dist/assets/index-B0pVaSWm.js          30.12 kB │ gzip: 11.50 kB
+
+[32m✓ built in 500ms[39m
+
+> @alzette/connect-frontend@0.1.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: native Date bindings and JSON timestamps expire identically
+ok 1 - native Date bindings and JSON timestamps expire identically
+  ---
+  duration_ms: 2.5625
+  type: 'test'
+  ...
+# Subtest: fresh endpoint evidence distinguishes health and preserves policy denial
+ok 2 - fresh endpoint evidence distinguishes health and preserves policy denial
+  ---
+  duration_ms: 0.2834
+  type: 'test'
+  ...
+# Subtest: missing or failed refresh evidence never invents availability
+ok 3 - missing or failed refresh evidence never invents availability
+  ---
+  duration_ms: 0.2849
+  type: 'test'
+  ...
+# Subtest: HTML references only present local entry assets
+ok 4 - HTML references only present local entry assets
+  ---
+  duration_ms: 11.5235
+  type: 'test'
+  ...
+# Subtest: build lifecycle prepares every Wails embedded asset
+ok 5 - build lifecycle prepares every Wails embedded asset
+  ---
+  duration_ms: 5.2009
+  type: 'test'
+  ...
+# Subtest: approved launcher lifecycle and context choice are present
+ok 6 - approved launcher lifecycle and context choice are present
+  ---
+  duration_ms: 1.7864
+  type: 'test'
+  ...
+# Subtest: runtime state boundary avoids fixture claims, credential persistence, and HTML injection
+ok 7 - runtime state boundary avoids fixture claims, credential persistence, and HTML injection
+  ---
+  duration_ms: 6.6234
+  type: 'test'
+  ...
+# Subtest: application readiness is qualified and future adapters remain disabled
+ok 8 - application readiness is qualified and future adapters remain disabled
+  ---
+  duration_ms: 5.1478
+  type: 'test'
+  ...
+# Subtest: stale authority, terminal access, large catalogues, and tray fallback stay truthful
+ok 9 - stale authority, terminal access, large catalogues, and tray fallback stay truthful
+  ---
+  duration_ms: 5.3221
+  type: 'test'
+  ...
+# Subtest: account menu Escape handling closes the popup and restores trigger focus
+ok 10 - account menu Escape handling closes the popup and restores trigger focus
+  ---
+  duration_ms: 1.8495
+  type: 'test'
+  ...
+# Subtest: document IDs are unique and live regions are bounded
+ok 11 - document IDs are unique and live regions are bounded
+  ---
+  duration_ms: 1.5922
+  type: 'test'
+  ...
+# Subtest: native update controls remain bounded without exposing release URLs
+ok 12 - native update controls remain bounded without exposing release URLs
+  ---
+  duration_ms: 2.7167
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 158.3736
+ok  	github.com/alzette-systems/alzette-connect	2.363s
+?   	github.com/alzette-systems/alzette-connect/cmd/alzette-connect-core	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-chatgpt-qa	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-claude-qa	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-oidc-qa	[no test files]
+ok  	github.com/alzette-systems/alzette-connect/internal/appstate	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/clientconfig	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/credentialstore	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/platform	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/proxy	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/session	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/updater	(cached)
+# github.com/alzette-systems/alzette-connect.test
+C:/AlzetteQA/toolchain/gcc/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/16.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: .rsrc merge failure: multiple non-default manifests
+ok  	github.com/alzette-systems/alzette-connect	3.659s
+?   	github.com/alzette-systems/alzette-connect/cmd/alzette-connect-core	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-chatgpt-qa	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-claude-qa	[no test files]
+?   	github.com/alzette-systems/alzette-connect/cmd/windows-oidc-qa	[no test files]
+ok  	github.com/alzette-systems/alzette-connect/internal/appstate	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/clientconfig	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/credentialstore	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/platform	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/proxy	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/session	(cached)
+ok  	github.com/alzette-systems/alzette-connect/internal/updater	(cached)
+Wails v3.0.0-alpha2.114 › Build
+task: [install:frontend] npm install
+
+up to date, audited 17 packages in 875ms
+
+8 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+task: [bindings] wails3 generate bindings  -clean=true -time-type=Date
+Wails v3.0.0-alpha2.114 › Generate Bindings
+[30;46m[30;46m INFO [0m[0m [96m[96mProcessed: 256 Packages, 1 Service, 15 Methods, 1 Enum, 6 Models, 1 Event in 2.8648395s.[0m[0m
+[30;46m[30;46m INFO [0m[0m [96m[96mOutput directory: C:\AlzetteQA\acceptance-source\frontend\bindings[0m[0m
+task: Task "frontend" is up to date
+task: [build] bash scripts/prepare-windows-resources.sh '0.3.14-windows-qa'
+task: [build] mkdir -p bin
+task: [build] go build -trimpath -ldflags '-H windowsgui -X main.version=0.3.14-windows-qa -X main.chatGPTCandidateEnabled=true' -tags 'production' -o bin/alzette-connect.exe .
+[92m[0m
+[92mNeed documentation? Run: [0m[94m]8;;https://v3.wails.io/getting-started/your-first-app/\[4mwails3 docs[0m[94m]8;;\[0m
+[31;107m[31;107m ♥  [0m[0m [92m[92mIf Wails is useful to you or your company, please consider sponsoring the project: [94m]8;;https://github.com/sponsors/leaanthony\[4mwails3 sponsor[0m[92m[94m]8;;\[0m[92m[0m[0m

@@ -197,6 +197,8 @@ import claudeIcon from "./assets/apps/claude.png";
       detail.textContent = "Your company access has ended. Contact your company owner if this is unexpected.";
     } else if (state.snapshot.errorCode === "credential_store_unavailable") {
       detail.textContent = "Unlock this computer’s protected credential store, then try again.";
+    } else if (state.snapshot.errorCode === "sign_in_port_in_use") {
+      detail.textContent = "The local sign-in port is busy. Close the other sign-in window or application, then try again.";
     } else if (state.snapshot.errorCode === "service_unavailable") {
       detail.textContent = "Alzette could not be reached. Check your connection and try again.";
     } else if (state.snapshot.errorCode === "sign_in_cancelled") {

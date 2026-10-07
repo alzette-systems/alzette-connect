@@ -2,6 +2,7 @@
 /bin/
 /dist/
 /coverage/
+/rsrc_windows_*.syso
 *.test
 *.prof
 coverage.out

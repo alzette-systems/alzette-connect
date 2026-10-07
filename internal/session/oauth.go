@@ -22,6 +22,9 @@ func (s *Session) browserAuthorization(ctx context.Context) (oauthTokens, error)
 	configured, _ := url.Parse(s.config.CallbackURL)
 	listener, err := net.Listen("tcp", configured.Host)
 	if err != nil {
+		if callbackPortInUse(err) {
+			return oauthTokens{}, fmt.Errorf("%w: %w", ErrCallbackPortInUse, err)
+		}
 		return oauthTokens{}, fmt.Errorf("listen for OAuth callback: %w", err)
 	}
 	defer listener.Close()

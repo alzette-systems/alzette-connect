@@ -1,0 +1,18 @@
+Packaging source checks passed.
+Wails v3.0.0-alpha2.114 › Build
+task: [install:frontend] npm install
+
+up to date, audited 17 packages in 7s
+
+8 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+task: Task "bindings" is up to date
+task: Task "frontend" is up to date
+task: [build] bash scripts/prepare-windows-resources.sh '0.3.14-windows-qa'
+task: [build] mkdir -p bin
+task: [build] go build -trimpath -ldflags '-H windowsgui -X main.version=0.3.14-windows-qa -X main.chatGPTCandidateEnabled=true' -tags 'production' -o bin/alzette-connect.exe .
+[92m[0m
+[92mNeed documentation? Run: [0m[94m]8;;https://v3.wails.io/getting-started/your-first-app/\[4mwails3 docs[0m[94m]8;;\[0m
+[31;107m[31;107m ♥  [0m[0m [92m[92mIf Wails is useful to you or your company, please consider sponsoring the project: [94m]8;;https://github.com/sponsors/leaanthony\[4mwails3 sponsor[0m[92m[94m]8;;\[0m[92m[0m[0m

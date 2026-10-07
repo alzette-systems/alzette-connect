@@ -1,0 +1,10 @@
+{
+    "processes":  [
+                      {
+                          "Id":  10908,
+                          "SessionId":  1
+                      }
+                  ],
+    "primary_count":  1,
+    "original_primary_retained":  true
+}

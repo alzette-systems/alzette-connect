@@ -25,6 +25,7 @@ var (
 	ErrSignInRequired        = errors.New("Alzette sign-in is required")
 	ErrSignInCancelled       = errors.New("Alzette sign-in was not completed")
 	ErrSignInTimeout         = errors.New("Alzette sign-in timed out")
+	ErrCallbackPortInUse     = errors.New("the local sign-in port is already in use")
 	ErrAccessRemoved         = errors.New("Alzette model access is unavailable")
 	ErrCredentialUnavailable = errors.New("Alzette could not start a private application session")
 )

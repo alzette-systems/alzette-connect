@@ -1,0 +1,27 @@
+{
+    "callbacks":  [
+
+                  ],
+    "proxies":  [
+                    {
+                        "LocalAddress":  "127.0.0.1",
+                        "LocalPort":  43128
+                    }
+                ],
+    "connect_processes":  [
+                              {
+                                  "Id":  10908,
+                                  "ProcessName":  "Alzette-Connect-0.3.14-windows-qa",
+                                  "SessionId":  1,
+                                  "MainWindowTitle":  ""
+                              }
+                          ],
+    "chatgpt_config_sha":  "4E9C81EAA16DEE5557C891E35677ECED01C321D50F3994DBAD69F484F525D79A",
+    "chatgpt_managed_provider":  false,
+    "chatgpt_managed_catalog":  false,
+    "claude_config_sha":  "F877614CAA37C15EF1E7550EB902619F410711BD9977A42FABB609114AAF8312",
+    "claude_managed_entries":  1,
+    "claude_journal":  true,
+    "chatgpt_process_count":  0,
+    "claude_process_count":  7
+}
