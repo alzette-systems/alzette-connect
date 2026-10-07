@@ -74,8 +74,9 @@ func (r *Runtime) RefreshEndpointStatus(ctx context.Context) error {
 	defer r.refreshMu.Unlock()
 	r.mu.Lock()
 	connected := r.session
+	connecting := r.connecting
 	r.mu.Unlock()
-	if connected == nil {
+	if connected == nil || connecting {
 		return nil
 	}
 	err := connected.RefreshContexts(ctx)
@@ -89,6 +90,9 @@ func (r *Runtime) RefreshEndpointStatus(ctx context.Context) error {
 		return nil
 	}
 	if err != nil {
+		next.Phase = Offline
+		next.Message = "Unable to refresh company access; reconnect when you are online"
+		next.ErrorCode = "service_unavailable"
 		for i := range next.Contexts {
 			for j := range next.Contexts[i].Endpoints {
 				endpoint := &next.Contexts[i].Endpoints[j]
@@ -101,15 +105,22 @@ func (r *Runtime) RefreshEndpointStatus(ctx context.Context) error {
 			next.Contexts = nil
 			next.SelectedContextID = ""
 			next.Message = "Your company access has ended"
+			next.ErrorCode = "access_removed"
 		}
 		if errors.Is(err, session.ErrSignInRequired) {
 			next.Phase = SignInRequired
 			next.Message = "Sign in again to refresh company access"
+			next.ErrorCode = "sign_in_required"
+		}
+		if errors.Is(err, credentialstore.ErrUnavailable) {
+			next.Phase = Failed
+			next.Message = "Protected sign-in storage is unavailable"
+			next.ErrorCode = "credential_store_unavailable"
 		}
 	} else {
 		next.Contexts = presentationContexts(connected.Contexts())
 		next.SelectedContextID = connected.SelectedContext().MembershipID
-		if next.Phase == Ready || next.Phase == NoAccess || next.Phase == AccessRemoved {
+		if next.Phase == Ready || next.Phase == NoAccess || next.Phase == AccessRemoved || next.Phase == Offline || next.Phase == Failed {
 			next.Phase = Ready
 			next.Message = "Company endpoint status refreshed"
 			next.ErrorCode = ""
@@ -143,14 +154,31 @@ func (r *Runtime) Resume(ctx context.Context, membershipID string) (bool, error)
 		r.fail(err)
 		return false, err
 	}
-	return true, r.Connect(ctx, membershipID)
+	return true, r.connect(ctx, membershipID, false)
 }
 
 func (r *Runtime) Connect(ctx context.Context, membershipID string) error {
+	return r.connect(ctx, membershipID, true)
+}
+
+func (r *Runtime) connect(ctx context.Context, membershipID string, interactive bool) error {
 	r.mu.Lock()
-	if r.connecting || r.session != nil {
+	if r.connecting {
 		r.mu.Unlock()
-		return errors.New("Alzette Connect is already running")
+		return errors.New("Alzette sign-in is already in progress")
+	}
+	if r.launching || r.proxy != nil {
+		r.mu.Unlock()
+		return errors.New("Disconnect the active application before signing in again")
+	}
+	if r.session != nil {
+		switch r.state.Current().Phase {
+		case SignInRequired, Offline, Failed:
+			// An unusable sign-in may be replaced once its client is disconnected.
+		default:
+			r.mu.Unlock()
+			return errors.New("Alzette Connect is already signed in")
+		}
 	}
 	r.connecting = true
 	r.mu.Unlock()
@@ -160,6 +188,13 @@ func (r *Runtime) Connect(ctx context.Context, membershipID string) error {
 		r.mu.Unlock()
 	}()
 	r.set(SigningIn, "Opening your company sign-in", "", nil)
+	// Let any in-flight status refresh finish before replacing its session.
+	// New refreshes skip connecting, and cannot overwrite the new sign-in.
+	r.refreshMu.Lock()
+	r.mu.Lock()
+	r.session = nil
+	r.mu.Unlock()
+	r.refreshMu.Unlock()
 	connected, err := session.New(session.Config{
 		ControlURL: r.config.ControlURL, CallbackURL: r.config.CallbackURL,
 		Profile: r.config.Profile, AllowInsecure: r.config.AllowInsecure,
@@ -170,7 +205,12 @@ func (r *Runtime) Connect(ctx context.Context, membershipID string) error {
 		r.fail(err)
 		return err
 	}
-	if err := connected.Connect(ctx); err != nil {
+	if interactive {
+		err = connected.SignIn(ctx)
+	} else {
+		err = connected.Connect(ctx)
+	}
+	if err != nil {
 		r.fail(err)
 		return err
 	}
@@ -223,7 +263,7 @@ func (r *Runtime) SelectContext(_ context.Context, membershipID string) error {
 // listener or human inference credential.
 func (r *Runtime) StartLaunch(ctx context.Context, allowedInferencePaths ...string) error {
 	r.mu.Lock()
-	if r.launching || r.proxy != nil {
+	if r.connecting || r.launching || r.proxy != nil {
 		r.mu.Unlock()
 		return errors.New("an Alzette application session is already active")
 	}
@@ -290,7 +330,13 @@ func (r *Runtime) StopLaunch(ctx context.Context) error {
 	}
 	if connected != nil {
 		revokeErr = connected.RevokeGrant(ctx)
-		r.set(Ready, "Your company models are ready", "", connected.Contexts())
+		if errors.Is(revokeErr, session.ErrSignInRequired) {
+			r.set(SignInRequired, "Sign in again to refresh company access", "sign_in_required", connected.Contexts())
+		} else if errors.Is(revokeErr, session.ErrAccessRemoved) {
+			r.set(AccessRemoved, "Your company access has ended", "access_removed", nil)
+		} else if phase := r.state.Current().Phase; phase == Ready || phase == NoAccess {
+			r.set(Ready, "Your company models are ready", "", connected.Contexts())
+		}
 	}
 	if closeErr != nil {
 		return closeErr

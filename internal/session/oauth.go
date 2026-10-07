@@ -132,9 +132,20 @@ func (s *Session) exchange(ctx context.Context, form url.Values) (oauthTokens, e
 		return oauthTokens{}, fmt.Errorf("exchange OAuth credential: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		var rejection struct {
+			Error string `json:"error"`
+		}
+		if (response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized) &&
+			decodeCompatibleJSON(response.Body, &rejection) == nil && rejection.Error == "invalid_grant" {
+			return oauthTokens{}, ErrSignInRequired
+		}
+		return oauthTokens{}, fmt.Errorf("identity service returned HTTP status %d", response.StatusCode)
+	}
 	var tokens oauthTokens
-	if response.StatusCode != http.StatusOK || decodeCompatibleJSON(response.Body, &tokens) != nil || tokens.AccessToken == "" || !strings.EqualFold(tokens.TokenType, "Bearer") || tokens.ExpiresIn <= 0 || tokens.ExpiresIn > 3600 {
-		return oauthTokens{}, errors.New("identity service returned an invalid token response")
+	if decodeCompatibleJSON(response.Body, &tokens) != nil || tokens.AccessToken == "" || !strings.EqualFold(tokens.TokenType, "Bearer") || tokens.ExpiresIn <= 0 || tokens.ExpiresIn > 3600 {
+		// An apparent success may already have consumed a rotating credential.
+		return oauthTokens{}, ErrSignInRequired
 	}
 	return tokens, nil
 }

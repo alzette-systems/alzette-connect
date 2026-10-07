@@ -73,6 +73,16 @@ func New(config Config) (*Session, error) {
 // Connect resumes a protected rotating login when present. With no stored
 // login it performs one system-browser Authorization Code + PKCE flow.
 func (s *Session) Connect(ctx context.Context) error {
+	return s.connect(ctx, false)
+}
+
+// SignIn allows an explicit user action to replace a rejected saved login
+// with browser authentication. A passive startup Connect never does that.
+func (s *Session) SignIn(ctx context.Context) error {
+	return s.connect(ctx, true)
+}
+
+func (s *Session) connect(ctx context.Context, interactive bool) error {
 	if err := s.discover(ctx); err != nil {
 		return err
 	}
@@ -82,13 +92,20 @@ func (s *Session) Connect(ctx context.Context) error {
 	}
 	defer release()
 	refresh, err := s.config.Store.Load(ctx, s.config.Profile)
+	browserRequired := errors.Is(err, credentialstore.ErrNotFound)
 	switch {
 	case err == nil:
 		if err := s.rotateRefreshLocked(ctx, refresh); err != nil {
-			_ = s.config.Store.Delete(context.Background(), s.config.Profile)
-			return ErrSignInRequired
+			if !interactive || !errors.Is(err, ErrSignInRequired) {
+				return err
+			}
+			browserRequired = true
 		}
 	case errors.Is(err, credentialstore.ErrNotFound):
+	default:
+		return err
+	}
+	if browserRequired {
 		tokens, authErr := s.browserAuthorization(ctx)
 		if authErr != nil {
 			return authErr
@@ -100,10 +117,14 @@ func (s *Session) Connect(ctx context.Context) error {
 			return err
 		}
 		s.setOAuth(tokens)
-	default:
-		return err
 	}
-	return s.loadContexts(ctx)
+	err = s.loadContexts(ctx)
+	if errors.Is(err, ErrSignInRequired) {
+		if deleteErr := s.config.Store.Delete(context.Background(), s.config.Profile); deleteErr != nil {
+			return deleteErr
+		}
+	}
+	return err
 }
 
 func (s *Session) Contexts() []Context {
@@ -419,12 +440,20 @@ func (s *Session) refreshUnderStoreLock(ctx context.Context) error {
 
 func (s *Session) rotateRefreshLocked(ctx context.Context, refresh string) error {
 	tokens, err := s.exchange(ctx, url.Values{"grant_type": {"refresh_token"}, "client_id": {s.metadata.OAuthClientID}, "refresh_token": {refresh}})
-	if err != nil || tokens.RefreshToken == "" || subtle.ConstantTimeCompare([]byte(tokens.RefreshToken), []byte(refresh)) == 1 {
-		return ErrSignInRequired
+	if err == nil && (tokens.RefreshToken == "" || subtle.ConstantTimeCompare([]byte(tokens.RefreshToken), []byte(refresh)) == 1) {
+		err = ErrSignInRequired
+	}
+	if err != nil {
+		if errors.Is(err, ErrSignInRequired) {
+			if deleteErr := s.config.Store.Delete(context.Background(), s.config.Profile); deleteErr != nil {
+				return deleteErr
+			}
+		}
+		return err
 	}
 	if err := s.config.Store.Save(ctx, s.config.Profile, tokens.RefreshToken); err != nil {
 		_ = s.config.Store.Delete(context.Background(), s.config.Profile)
-		return ErrSignInRequired
+		return err
 	}
 	s.setOAuth(tokens)
 	return nil
