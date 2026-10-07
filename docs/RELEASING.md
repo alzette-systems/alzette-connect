@@ -44,20 +44,25 @@ pull requests or third-party build steps.
 
 ## Updates
 
-The internal demo channel is implemented with deliberately narrow trust:
+Update discovery uses deliberately narrow trust:
 
 - repository identity is pinned to `alzette-systems/alzette-connect`;
-- only `connect-v*` prereleases and the exact current OS/architecture package
-  name are accepted;
+- only newer `connect-v*` releases with the exact current OS/architecture
+  package name are accepted; stable clients skip prereleases;
 - the GitHub release page and download URL must match that repository/version;
 - the download size and GitHub-provided `sha256:` asset digest must match before
   any installer is opened;
 - CI emits GitHub build-provenance attestations for the published assets.
 
 macOS and Windows use a credential-free helper process after the main app exits.
-Linux opens the verified `.deb` with the system package installer. The current
-demo packages are still unsigned/ad-hoc signed, so this mechanism is an internal
-distribution convenience, not proof of production update authenticity.
+Linux opens the verified `.deb` with the system package installer. Stable macOS
+packages are Developer ID signed, notarized and stapled; preview macOS packages
+and Windows/Linux demo packages remain unsigned or ad-hoc signed. An asset
+digest is not proof of publisher identity.
+
+The installed Apple Silicon app passed the complete in-app update from 0.3.13
+to 0.3.14, including replacement, relaunch, signature verification and saved-login
+restoration. See the [exact release evidence](evidence/macos-release-0.3.14-2026-10-07/README.md).
 
 Production enablement still requires a signed/notarized macOS target, Windows
 publisher identity and timestamp continuity, an approved Linux repository or

@@ -53,15 +53,15 @@ The current Windows priorities are ChatGPT and Claude Desktop; Pi, Jan and Goose
 
 Signed/notarized installers, publisher continuity, real Casdoor acceptance, and release qualification on clean macOS, Windows, and Ubuntu machines remain release gates. The app must not be distributed to employees as a production build until those gates pass.
 
-## Download an internal demo build
+## Downloads and updates
 
 Tagged builds are published on the repository's **Releases** page for macOS (Apple Silicon and Intel), Windows x64, and Ubuntu x64. The **Desktop Downloads** workflow also keeps the same files as short-lived Actions artifacts. Releases carry GitHub build-provenance attestations and GitHub's asset SHA-256 digest.
 
-The current downloads are intentionally named `unsigned-demo`: macOS receives an ad-hoc-signed `.app.zip`, Windows receives a per-user `.exe` installer, and Ubuntu receives a `.deb`. They are suitable for the controlled demo and acceptance work, but they are not production releases. macOS notarization, Windows Authenticode signing, platform clean-machine QA, and protected release publication remain mandatory before self-service employee distribution.
+Stable macOS releases provide Developer ID signed, Apple-notarized and stapled application ZIPs for Apple Silicon and Intel. The separate internal demo downloads are named `unsigned-demo`: macOS receives an ad-hoc-signed `.app.zip`, Windows receives a per-user `.exe` installer, and Ubuntu receives a `.deb`. Windows and Linux demo artifacts remain intended for controlled acceptance work.
 
 The unsigned internal workflow and signed macOS 0.3 acceptance channel enable the ChatGPT adapter candidate so it can complete named native acceptance. Normal local builds keep that adapter disabled unless `ALZETTE_CONNECT_CHATGPT_CANDIDATE=true` is supplied at build time. Even in a candidate build, the row remains **Verify at launch**; a process start never turns unproven native compatibility into **Ready**.
 
-Once this updater-enabled build is installed, use **Diagnostics and updates**, **Check for Updates…** in the tray menu, or the native menu. Connect accepts only a newer prerelease from the pinned `alzette-systems/alzette-connect` repository, downloads the exact package for the current OS/architecture, and verifies the release asset's SHA-256 digest before opening it. macOS and Windows close, replace/install, and reopen Connect; Linux opens the verified `.deb` in the system package installer. Because the previous build did not contain an updater, this release must be installed manually once.
+Use **Diagnostics and updates** or **Check for Updates…** in the tray menu. Connect accepts only a newer matching package from the pinned `alzette-systems/alzette-connect` repository and verifies its size and SHA-256 digest before installation. Stable clients skip prereleases; preview clients can also receive newer previews. macOS and Windows close, replace/install, and reopen Connect; Linux opens the verified `.deb` in the system package installer. On macOS, run Connect from a writable Applications folder. The installed Apple Silicon app passed the complete in-app update from [0.3.13 to 0.3.14](docs/evidence/macos-release-0.3.14-2026-10-07/README.md).
 
 ### Code signing policy
 
